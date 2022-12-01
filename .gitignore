@@ -5,3 +5,7 @@
 
 # IDE files
 /.idea
+
+
+/*.code-workspace
+.env
