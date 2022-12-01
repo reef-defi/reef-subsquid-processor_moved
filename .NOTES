@@ -1,0 +1,55 @@
+Docs: https://docs.subsquid.io/quickstart/quickstart-substrate/
+      https://docs.subsquid.io/tutorials/create-an-evm-processing-squid/
+Template: https://github.com/subsquid/squid-frontier-evm-template.git
+Examples: https://github.com/subsquid/squid-substrate-examples
+Squid: https://github.com/subsquid/squid
+
+
+# Run E2E with local ingest, processor and metadata
+
+## Archive
+
+- Start archive db (localhost:29387), ingest, gateway (http://localhost:8888) and explorer (http://localhost:4444/graphql):
+make archive-up
+
+## Processor
+
+Prepare
+=======
+- Install dependencies
+yarn
+
+- Generate entities from schema.graphql (output in src/model/generated)
+make codegen (npx squid-typeorm-codegen)
+
+- Generate TypeScript metadata wrappers from typegen.json (output in src/types)
+make typegen (npx squid-substrate-typegen typegen.json)
+
+- Generate TypeScript EVM contract interfaces from ABI
+npx squid-evm-typegen --abi src/abi/ERC1155.json --output src/abi/erc1155.ts
+v2 => npx squid-evm-typegen src/abi ERC1155.json
+
+- Build
+make build (npm run build)
+
+- Start subsquid db (localhost:23798)
+make up
+
+- Delete migration files, generate new one and apply
+rm -rf db/migrations/*.js 
+make migration (npx squid-typeorm-migration generate)
+make migrate (npx squid-typeorm-migration apply)
+
+- Start processor
+make process (node -r dotenv/config lib/processor.js)
+
+- Start API gateway (http://localhost:4350)
+make serve (npx squid-graphql-server --subscriptions)
+
+## Stop
+
+- Stop archive db, ingest, gateway and explorer:
+make archive-down
+
+- Stop subsquid db:
+make down

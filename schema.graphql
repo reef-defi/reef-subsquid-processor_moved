@@ -1,31 +1,82 @@
-type Token @entity {
+type Account @entity {
   id: ID!
-  owner: Owner
-  uri: String
-  transfers: [Transfer!]! @derivedFrom(field: "token")
-  contract: Contract
-}
-
-type Owner @entity {
-  id: ID!
-  ownedTokens: [Token!]! @derivedFrom(field: "owner")
-  balance: BigInt
+  address: String! @unique @index
+  evmAddress: String @unique @index 
+  transfersTo: [Transfer!] @derivedFrom(field: "to")
+  transfersFrom: [Transfer!] @derivedFrom(field: "from")
+  tokensHeld: [TokenHolder!] @derivedFrom(field: "signer")
+  contracts: [Contract!] @derivedFrom(field: "signer")
+  # blockId: Int! @index # TODO FK
+  # identity: JSON
+  # active: Boolean! @index
+  # freeBalance: BigInt!
+  # lockedBalance: BigInt!
+  # availableBalance: BigInt!
+  # reservedBalance: BigInt!
+  # vestedBalance: BigInt!
+  # votingBalance: BigInt!
+  # nonce: Int!
+  # evmNonce: Int!
+  # timestamp: DateTime!
 }
 
 type Contract @entity {
   id: ID!
-  name: String
-  symbol: String
-  totalSupply: BigInt
-  mintedTokens: [Token!]! @derivedFrom(field: "contract")
+  address: String! @unique @index
+  extrinsicId: Int @index # TODO FK
+  signer: Account
+  signerAddress: String @index
+  bytecode: String!
+  bytecodeContext: String!
+  bytecodeArguments: String!
+  gasLimit: Int!
+  storageLimit: Int!
+  timestamp: DateTime!
 }
 
 type Transfer @entity {
   id: ID!
-  token: Token!
-  from: Owner
-  to: Owner
-  timestamp: BigInt!
-  block: Int!
-  transactionHash: String!
+  blockId: Int! @index # TODO FK
+  extrinsicId: Int! @index # TODO FK
+  to: Account!
+  from: Account!
+  toAddress: String @index
+  fromAddress: String @index
+  tokenAddress: String @index # TODO FK
+  toEvmAddress: String @index
+  fromEvmAddress: String @index
+  type: TransferType!
+  amount: BigInt! @index
+  feeAmount: BigInt! @index
+  denom: String @index
+  nftId: BigInt @index
+  errorMessage: String
+  success: Boolean! @index
+  timestamp: DateTime!
+  eventId: Int!
+}
+
+enum TransferType {
+  Native, 
+  ERC20, 
+  ERC721, 
+  ERC1155
+}
+
+type TokenHolder @entity @index(fields: ["tokenAddress", "signer", "nftId"], unique: true) {
+  id: ID!
+  tokenAddress: String! @unique @index # TODO FK
+  signer: Account
+  signerAddress: String @index
+  evmAddress: String @index
+  nftId: BigInt
+  type: TokenHolderType!
+  balance: BigInt! @index
+  info: JSON!
+  timestamp: DateTime!
+}
+
+enum TokenHolderType {
+  Account, 
+  Contract
 }

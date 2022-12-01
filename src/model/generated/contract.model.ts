@@ -1,25 +1,46 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToMany as OneToMany_} from "typeorm"
-import * as marshal from "./marshal"
-import {Token} from "./token.model"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
+import {Account} from "./account.model"
 
 @Entity_()
 export class Contract {
-  constructor(props?: Partial<Contract>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<Contract>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Column_("text", {nullable: true})
-  name!: string | undefined | null
+    @Index_({unique: true})
+    @Column_("text", {nullable: false})
+    address!: string
 
-  @Column_("text", {nullable: true})
-  symbol!: string | undefined | null
+    @Index_()
+    @Column_("int4", {nullable: true})
+    extrinsicId!: number | undefined | null
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-  totalSupply!: bigint | undefined | null
+    @Index_()
+    @ManyToOne_(() => Account, {nullable: true})
+    signer!: Account | undefined | null
 
-  @OneToMany_(() => Token, e => e.contract)
-  mintedTokens!: Token[]
+    @Index_()
+    @Column_("text", {nullable: true})
+    signerAddress!: string | undefined | null
+
+    @Column_("text", {nullable: false})
+    bytecode!: string
+
+    @Column_("text", {nullable: false})
+    bytecodeContext!: string
+
+    @Column_("text", {nullable: false})
+    bytecodeArguments!: string
+
+    @Column_("int4", {nullable: false})
+    gasLimit!: number
+
+    @Column_("int4", {nullable: false})
+    storageLimit!: number
+
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 }

@@ -3,11 +3,9 @@ import { Provider } from '@reef-defi/evm-provider';
 
 export const abi = new ethers.utils.Interface(getJsonAbi());
 
-export type Approval0Event = ([owner: string, approved: string, tokenId: ethers.BigNumber] & {owner: string, approved: string, tokenId: ethers.BigNumber})
+export type Approval0Event = ([owner: string, spender: string, value: ethers.BigNumber] & {owner: string, spender: string, value: ethers.BigNumber})
 
-export type ApprovalForAll0Event = ([owner: string, operator: string, approved: boolean] & {owner: string, operator: string, approved: boolean})
-
-export type Transfer0Event = ([from: string, to: string, tokenId: ethers.BigNumber] & {from: string, to: string, tokenId: ethers.BigNumber})
+export type Transfer0Event = ([from: string, to: string, value: ethers.BigNumber] & {from: string, to: string, value: ethers.BigNumber})
 
 export interface EvmLog {
   data: string;
@@ -30,13 +28,6 @@ export const events = {
     }
   }
   ,
-  "ApprovalForAll(address,address,bool)": {
-    topic: abi.getEventTopic("ApprovalForAll(address,address,bool)"),
-    decode(data: EvmLog): ApprovalForAll0Event {
-      return decodeEvent("ApprovalForAll(address,address,bool)", data)
-    }
-  }
-  ,
   "Transfer(address,address,uint256)": {
     topic: abi.getEventTopic("Transfer(address,address,uint256)"),
     decode(data: EvmLog): Transfer0Event {
@@ -46,15 +37,15 @@ export const events = {
   ,
 }
 
-export type Approve0Function = ([to: string, tokenId: ethers.BigNumber] & {to: string, tokenId: ethers.BigNumber})
+export type Approve0Function = ([spender: string, amount: ethers.BigNumber] & {spender: string, amount: ethers.BigNumber})
 
-export type SafeTransferFrom0Function = ([from: string, to: string, tokenId: ethers.BigNumber] & {from: string, to: string, tokenId: ethers.BigNumber})
+export type DecreaseAllowance0Function = ([spender: string, subtractedValue: ethers.BigNumber] & {spender: string, subtractedValue: ethers.BigNumber})
 
-export type SafeTransferFrom1Function = ([from: string, to: string, tokenId: ethers.BigNumber, _data: string] & {from: string, to: string, tokenId: ethers.BigNumber, _data: string})
+export type IncreaseAllowance0Function = ([spender: string, addedValue: ethers.BigNumber] & {spender: string, addedValue: ethers.BigNumber})
 
-export type SetApprovalForAll0Function = ([operator: string, approved: boolean] & {operator: string, approved: boolean})
+export type Transfer0Function = ([recipient: string, amount: ethers.BigNumber] & {recipient: string, amount: ethers.BigNumber})
 
-export type TransferFrom0Function = ([from: string, to: string, tokenId: ethers.BigNumber] & {from: string, to: string, tokenId: ethers.BigNumber})
+export type TransferFrom0Function = ([sender: string, recipient: string, amount: ethers.BigNumber] & {sender: string, recipient: string, amount: ethers.BigNumber})
 
 
 function decodeFunction(data: string): any {
@@ -69,23 +60,23 @@ export const functions = {
     }
   }
   ,
-  "safeTransferFrom(address,address,uint256)": {
-    sighash: abi.getSighash("safeTransferFrom(address,address,uint256)"),
-    decode(input: string): SafeTransferFrom0Function {
+  "decreaseAllowance(address,uint256)": {
+    sighash: abi.getSighash("decreaseAllowance(address,uint256)"),
+    decode(input: string): DecreaseAllowance0Function {
       return decodeFunction(input)
     }
   }
   ,
-  "safeTransferFrom(address,address,uint256,bytes)": {
-    sighash: abi.getSighash("safeTransferFrom(address,address,uint256,bytes)"),
-    decode(input: string): SafeTransferFrom1Function {
+  "increaseAllowance(address,uint256)": {
+    sighash: abi.getSighash("increaseAllowance(address,uint256)"),
+    decode(input: string): IncreaseAllowance0Function {
       return decodeFunction(input)
     }
   }
   ,
-  "setApprovalForAll(address,bool)": {
-    sighash: abi.getSighash("setApprovalForAll(address,bool)"),
-    decode(input: string): SetApprovalForAll0Function {
+  "transfer(address,uint256)": {
+    sighash: abi.getSighash("transfer(address,uint256)"),
+    decode(input: string): Transfer0Function {
       return decodeFunction(input)
     }
   }
@@ -114,36 +105,28 @@ export class Contract  {
     }
   }
 
-  async balanceOf(owner: string): Promise<ethers.BigNumber> {
-    return this.call("balanceOf", [owner])
+  async allowance(owner: string, spender: string): Promise<ethers.BigNumber> {
+    return this.call("allowance", [owner, spender])
   }
 
-  async getApproved(tokenId: ethers.BigNumber): Promise<string> {
-    return this.call("getApproved", [tokenId])
+  async balanceOf(account: string): Promise<ethers.BigNumber> {
+    return this.call("balanceOf", [account])
   }
 
-  async isApprovedForAll(owner: string, operator: string): Promise<boolean> {
-    return this.call("isApprovedForAll", [owner, operator])
+  async decimals(): Promise<number> {
+    return this.call("decimals", [])
   }
 
   async name(): Promise<string> {
     return this.call("name", [])
   }
 
-  async ownerOf(tokenId: ethers.BigNumber): Promise<string> {
-    return this.call("ownerOf", [tokenId])
-  }
-
-  async supportsInterface(interfaceId: string): Promise<boolean> {
-    return this.call("supportsInterface", [interfaceId])
-  }
-
   async symbol(): Promise<string> {
     return this.call("symbol", [])
   }
 
-  async tokenURI(tokenId: ethers.BigNumber): Promise<string> {
-    return this.call("tokenURI", [tokenId])
+  async totalSupply(): Promise<ethers.BigNumber> {
+    return this.call("totalSupply", [])
   }
 
   private async call(name: string, args: any[]) : Promise<any> {
@@ -166,42 +149,17 @@ function getJsonAbi(): any {
         {
           "indexed": true,
           "internalType": "address",
-          "name": "approved",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "Approval",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "operator",
+          "name": "spender",
           "type": "address"
         },
         {
           "indexed": false,
-          "internalType": "bool",
-          "name": "approved",
-          "type": "bool"
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
         }
       ],
-      "name": "ApprovalForAll",
+      "name": "Approval",
       "type": "event"
     },
     {
@@ -220,9 +178,9 @@ function getJsonAbi(): any {
           "type": "address"
         },
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "value",
           "type": "uint256"
         }
       ],
@@ -233,17 +191,47 @@ function getJsonAbi(): any {
       "inputs": [
         {
           "internalType": "address",
-          "name": "to",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "amount",
           "type": "uint256"
         }
       ],
       "name": "approve",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -251,7 +239,7 @@ function getJsonAbi(): any {
       "inputs": [
         {
           "internalType": "address",
-          "name": "owner",
+          "name": "account",
           "type": "address"
         }
       ],
@@ -267,19 +255,13 @@ function getJsonAbi(): any {
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getApproved",
+      "inputs": [],
+      "name": "decimals",
       "outputs": [
         {
-          "internalType": "address",
+          "internalType": "uint8",
           "name": "",
-          "type": "address"
+          "type": "uint8"
         }
       ],
       "stateMutability": "view",
@@ -289,16 +271,16 @@ function getJsonAbi(): any {
       "inputs": [
         {
           "internalType": "address",
-          "name": "owner",
+          "name": "spender",
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
+          "internalType": "uint256",
+          "name": "subtractedValue",
+          "type": "uint256"
         }
       ],
-      "name": "isApprovedForAll",
+      "name": "decreaseAllowance",
       "outputs": [
         {
           "internalType": "bool",
@@ -306,7 +288,31 @@ function getJsonAbi(): any {
           "type": "bool"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "addedValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "increaseAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -317,113 +323,6 @@ function getJsonAbi(): any {
           "internalType": "string",
           "name": "",
           "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "ownerOf",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "safeTransferFrom",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "_data",
-          "type": "bytes"
-        }
-      ],
-      "name": "safeTransferFrom",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "approved",
-          "type": "bool"
-        }
-      ],
-      "name": "setApprovalForAll",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes4",
-          "name": "interfaceId",
-          "type": "bytes4"
-        }
-      ],
-      "name": "supportsInterface",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -443,19 +342,13 @@ function getJsonAbi(): any {
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "tokenURI",
+      "inputs": [],
+      "name": "totalSupply",
       "outputs": [
         {
-          "internalType": "string",
+          "internalType": "uint256",
           "name": "",
-          "type": "string"
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -465,22 +358,52 @@ function getJsonAbi(): any {
       "inputs": [
         {
           "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
+          "name": "recipient",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
           "type": "uint256"
         }
       ],
       "name": "transferFrom",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     }

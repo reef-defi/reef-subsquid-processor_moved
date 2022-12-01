@@ -1,35 +1,82 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
-import {Token} from "./token.model"
-import {Owner} from "./owner.model"
+import {Account} from "./account.model"
+import {TransferType} from "./_transferType"
 
 @Entity_()
 export class Transfer {
-  constructor(props?: Partial<Transfer>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<Transfer>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_()
-  @ManyToOne_(() => Token, {nullable: false})
-  token!: Token
+    @Index_()
+    @Column_("int4", {nullable: false})
+    blockId!: number
 
-  @Index_()
-  @ManyToOne_(() => Owner, {nullable: true})
-  from!: Owner | undefined | null
+    @Index_()
+    @Column_("int4", {nullable: false})
+    extrinsicId!: number
 
-  @Index_()
-  @ManyToOne_(() => Owner, {nullable: true})
-  to!: Owner | undefined | null
+    @Index_()
+    @ManyToOne_(() => Account, {nullable: true})
+    to!: Account
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  timestamp!: bigint
+    @Index_()
+    @ManyToOne_(() => Account, {nullable: true})
+    from!: Account
 
-  @Column_("integer", {nullable: false})
-  block!: number
+    @Index_()
+    @Column_("text", {nullable: true})
+    toAddress!: string | undefined | null
 
-  @Column_("text", {nullable: false})
-  transactionHash!: string
+    @Index_()
+    @Column_("text", {nullable: true})
+    fromAddress!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    tokenAddress!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    toEvmAddress!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    fromEvmAddress!: string | undefined | null
+
+    @Column_("varchar", {length: 7, nullable: false})
+    type!: TransferType
+
+    @Index_()
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    amount!: bigint
+
+    @Index_()
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    feeAmount!: bigint
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    denom!: string | undefined | null
+
+    @Index_()
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+    nftId!: bigint | undefined | null
+
+    @Column_("text", {nullable: true})
+    errorMessage!: string | undefined | null
+
+    @Index_()
+    @Column_("bool", {nullable: false})
+    success!: boolean
+
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
+
+    @Column_("int4", {nullable: false})
+    eventId!: number
 }
