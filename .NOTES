@@ -5,7 +5,7 @@ Examples: https://github.com/subsquid/squid-substrate-examples
 Squid: https://github.com/subsquid/squid
 
 
-# Run E2E with local ingest, processor and metadata
+# Run E2E
 
 ## Archive
 
@@ -27,7 +27,7 @@ make typegen (npx squid-substrate-typegen typegen.json)
 
 - Generate TypeScript EVM contract interfaces from ABI
 npx squid-evm-typegen --abi src/abi/ERC1155.json --output src/abi/erc1155.ts
-v2 => npx squid-evm-typegen src/abi ERC1155.json
+v2 => npx squid-evm-typegen src/abi ERC1155.json ??
 
 - Build
 make build (npm run build)

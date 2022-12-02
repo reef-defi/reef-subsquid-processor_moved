@@ -16,7 +16,7 @@ export class Account {
     @Column_("text", {nullable: false})
     address!: string
 
-    @Index_({unique: true})
+    @Index_()
     @Column_("text", {nullable: true})
     evmAddress!: string | undefined | null
 

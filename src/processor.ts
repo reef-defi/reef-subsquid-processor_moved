@@ -14,6 +14,9 @@ import * as erc20 from "./abi/erc20";
 import * as erc721 from "./abi/erc721";
 import * as erc1155 from "./abi/erc1155";
 import { EventData } from "@subsquid/substrate-processor/lib/interfaces/dataSelection";
+import { processBlock } from "./process/block";
+import { Block } from "./model";
+import { blockIdToHeight } from "./util";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -28,18 +31,21 @@ const processor = new SubstrateBatchProcessor()
     archive: 'http://localhost:8888/graphql'
   })
   .addEvent("*")
-  // .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
+  .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
-type Item = BatchProcessorItem<typeof processor>;
-type Context = BatchContext<Store, Item>;
+export type Item = BatchProcessorItem<typeof processor>;
+export type Context = BatchContext<Store, Item>;
 
 processor.run(database, async (ctx) => {
-//   await provider.api.isReadyOrError;
+  let blocks: Block[] = [];
+  const maxBatchSize = 1000;
+
+  // await provider.api.isReadyOrError;
 
   for (const block of ctx.blocks) {
-    // console.log(`Processing block ${block.header.height}`);
+    blocks.push(processBlock(block));
+
     for (const item of block.items) {
-      // console.log(`Processing item ${item.name}`);
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         switch (item.name as string) {
           case 'EVM.Log': 
@@ -78,6 +84,15 @@ processor.run(database, async (ctx) => {
             // console.log('default event: ', item.name);
         }
       }
+    }
+
+    // Until we reach last `maxBatchSize` blocks, save every `maxBatchSize` blocks to prevent memory overflow. 
+    // TODO - Check optimal batch size and whether it's better to have separate processes.
+    if (blocks.length >= maxBatchSize || block.header.height + maxBatchSize > ctx.blocks[ctx.blocks.length - 1].header.height) {
+      console.log(`Saving blocks from ${blockIdToHeight(blocks[0].id)} to ${block.header.height}`);
+      await ctx.store.insert(blocks);
+      console.log('Blocks saved');
+      blocks = [];
     }
   }
 });

@@ -1,3 +1,4 @@
+export * from "./block.model"
 export * from "./account.model"
 export * from "./contract.model"
 export * from "./transfer.model"
