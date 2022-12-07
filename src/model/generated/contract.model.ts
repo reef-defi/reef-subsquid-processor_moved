@@ -1,5 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_, OneToMany as OneToMany_} from "typeorm"
 import {Account} from "./account.model"
+import {Transfer} from "./transfer.model"
+import {TokenHolder} from "./tokenHolder.model"
 
 @Entity_()
 export class Contract {
@@ -43,4 +45,10 @@ export class Contract {
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
+
+    @OneToMany_(() => Transfer, e => e.tokenContract)
+    transfers!: Transfer[]
+
+    @OneToMany_(() => TokenHolder, e => e.tokenContract)
+    tokenHolders!: TokenHolder[]
 }

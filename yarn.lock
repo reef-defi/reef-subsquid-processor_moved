@@ -3101,10 +3101,10 @@
     query-string "^7.1.0"
     simple-git "^2.48.0"
 
-"@subsquid/evm-typegen@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@subsquid/evm-typegen/-/evm-typegen-2.0.0.tgz#65197b5e362e65e2147ee96325554ebd6595df71"
-  integrity sha512-J1Pq4VxyGP4WdBXtJ3JEIswWeoQHCBTqVUyRbjtFMHq+f0nVD5n6AkCJL8P6ON1LIvahD9+xag2jxCxRQFAtSQ==
+"@subsquid/evm-typegen@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@subsquid/evm-typegen/-/evm-typegen-2.0.1.tgz#f37bc982ae75e6603a686afc83fef4a43144c08f"
+  integrity sha512-Dfn/Yo2lUSYa0DojAwTua6yyXAjYlk9ZJ3u/wd1htgAVHQjTzqsEalTPcsS+Eeiz8nPg705QVQHhs5JEnr4enw==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/address" "^5.7.0"

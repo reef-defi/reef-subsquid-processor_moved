@@ -8,18 +8,19 @@ type Block @entity {
   finalized: Boolean! @index
   timestamp: DateTime!
   processorTimestamp: DateTime
-  accounts: [Account!] @derivedFrom(field: "blockId")
+  accounts: [Account!] @derivedFrom(field: "block")
+  transfers: [Transfer!] @derivedFrom(field: "block")
 }
 
 type Account @entity {
   id: ID!
   address: String! @unique @index
   evmAddress: String @index 
-  transfersTo: [Transfer!] @derivedFrom(field: "to")
-  transfersFrom: [Transfer!] @derivedFrom(field: "from")
+  # transfersTo: [Transfer!] @derivedFrom(field: "to")
+  # transfersFrom: [Transfer!] @derivedFrom(field: "from")
   tokensHeld: [TokenHolder!] @derivedFrom(field: "signer")
   contracts: [Contract!] @derivedFrom(field: "signer")
-  blockId: Block! @index
+  block: Block! @index
   # identity: JSON
   # active: Boolean! @index
   # freeBalance: BigInt!
@@ -45,17 +46,49 @@ type Contract @entity {
   gasLimit: Int!
   storageLimit: Int!
   timestamp: DateTime!
+  transfers: [Transfer!] @derivedFrom(field: "tokenContract")
+  tokenHolders: [TokenHolder!] @derivedFrom(field: "tokenContract")
+}
+
+type EvmEvent @entity {
+  id: ID!
+  # event: Event!
+  block: Block!
+  eventIndex: Int!
+  extrinsicIndex: Int!
+  contract: Contract!
+  contractAddress: String!
+  dataRaw: JSON!
+  dataParsed: JSON!
+  method: String!
+  type: EvmEventType!
+  status: EvmEventStatus!
+  topic0: String
+  topic1: String
+  topic2: String
+  topic3: String
+}
+
+enum EvmEventType {
+  Verified, 
+  Unverified
+}
+
+enum EvmEventStatus {
+  Success, 
+  Error
 }
 
 type Transfer @entity {
   id: ID!
-  blockId: Int! @index # TODO FK
-  extrinsicId: Int! @index # TODO FK
-  to: Account!
-  from: Account!
+  block: Block! @index
+  extrinsicId: String! @index # TODO FK
+  # to: Account!
+  # from: Account!
   toAddress: String @index
   fromAddress: String @index
-  tokenAddress: String @index # TODO FK
+  tokenContract: Contract! @index
+  tokenAddress: String @index
   toEvmAddress: String @index
   fromEvmAddress: String @index
   type: TransferType!
@@ -66,7 +99,6 @@ type Transfer @entity {
   errorMessage: String
   success: Boolean! @index
   timestamp: DateTime!
-  eventId: Int!
 }
 
 enum TransferType {
@@ -78,7 +110,8 @@ enum TransferType {
 
 type TokenHolder @entity @index(fields: ["tokenAddress", "signer", "nftId"], unique: true) {
   id: ID!
-  tokenAddress: String! @unique @index # TODO FK
+  tokenContract: Contract! @index
+  tokenAddress: String! @unique @index
   signer: Account
   signerAddress: String @index
   evmAddress: String @index

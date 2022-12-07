@@ -1,20 +1,19 @@
-import { BatchBlock } from "@subsquid/substrate-processor";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Block } from "../model/generated/block.model";
-import { Item } from "../processor";
 import { hexToNativeAddress } from "../util";
 
-export const processBlock = (block: BatchBlock<Item>): Block => {
-    console.log(`Processing block ${block.header.height}`);
+export const processBlock = (blockHeader: SubstrateBlock): Block => {
+    console.log(`Processing block ${blockHeader.height}`);
 
     return new Block ({
-        id: block.header.id,
-        hash: block.header.hash,
-        author: hexToNativeAddress(block.header.validator),
-        stateRoot: block.header.stateRoot,
-        parentHash: block.header.parentHash,
-        extrinsicRoot: block.header.extrinsicsRoot,
+        id: blockHeader.id,
+        hash: blockHeader.hash,
+        author: hexToNativeAddress(blockHeader.validator),
+        stateRoot: blockHeader.stateRoot,
+        parentHash: blockHeader.parentHash,
+        extrinsicRoot: blockHeader.extrinsicsRoot,
         finalized: true, // For now all, the Squid archive only returns finalized blocks
-        timestamp: new Date(block.header.timestamp),
+        timestamp: new Date(blockHeader.timestamp),
         processorTimestamp: new Date(),
     });
 }

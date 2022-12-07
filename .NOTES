@@ -26,8 +26,7 @@ make codegen (npx squid-typeorm-codegen)
 make typegen (npx squid-substrate-typegen typegen.json)
 
 - Generate TypeScript EVM contract interfaces from ABI
-npx squid-evm-typegen --abi src/abi/ERC1155.json --output src/abi/erc1155.ts
-v2 => npx squid-evm-typegen src/abi ERC1155.json ??
+npx squid-evm-typegen src/abi src/abi/ERC1155.json
 
 - Build
 make build (npm run build)

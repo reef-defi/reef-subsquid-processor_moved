@@ -1,6 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
-import {Account} from "./account.model"
+import {Block} from "./block.model"
+import {Contract} from "./contract.model"
 import {TransferType} from "./_transferType"
 
 @Entity_()
@@ -13,20 +14,12 @@ export class Transfer {
     id!: string
 
     @Index_()
-    @Column_("int4", {nullable: false})
-    blockId!: number
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
     @Index_()
-    @Column_("int4", {nullable: false})
-    extrinsicId!: number
-
-    @Index_()
-    @ManyToOne_(() => Account, {nullable: true})
-    to!: Account
-
-    @Index_()
-    @ManyToOne_(() => Account, {nullable: true})
-    from!: Account
+    @Column_("text", {nullable: false})
+    extrinsicId!: string
 
     @Index_()
     @Column_("text", {nullable: true})
@@ -35,6 +28,10 @@ export class Transfer {
     @Index_()
     @Column_("text", {nullable: true})
     fromAddress!: string | undefined | null
+
+    @Index_()
+    @ManyToOne_(() => Contract, {nullable: true})
+    tokenContract!: Contract
 
     @Index_()
     @Column_("text", {nullable: true})
@@ -76,7 +73,4 @@ export class Transfer {
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
-
-    @Column_("int4", {nullable: false})
-    eventId!: number
 }
