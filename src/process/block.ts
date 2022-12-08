@@ -3,10 +3,11 @@ import { Block } from "../model/generated/block.model";
 import { hexToNativeAddress } from "../util";
 
 export const processBlock = (blockHeader: SubstrateBlock): Block => {
-    console.log(`Processing block ${blockHeader.height}`);
+    // console.log(`Processing block ${blockHeader.height}`);
 
-    return new Block ({
+    const block = new Block ({
         id: blockHeader.id,
+        height: blockHeader.height,
         hash: blockHeader.hash,
         author: hexToNativeAddress(blockHeader.validator),
         stateRoot: blockHeader.stateRoot,
@@ -16,4 +17,6 @@ export const processBlock = (blockHeader: SubstrateBlock): Block => {
         timestamp: new Date(blockHeader.timestamp),
         processorTimestamp: new Date(),
     });
+
+    return block;
 }

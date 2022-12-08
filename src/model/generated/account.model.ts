@@ -1,7 +1,5 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, OneToMany as OneToMany_, ManyToOne as ManyToOne_} from "typeorm"
-import {TokenHolder} from "./tokenHolder.model"
-import {Contract} from "./contract.model"
-import {Block} from "./block.model"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import * as marshal from "./marshal"
 
 @Entity_()
 export class Account {
@@ -12,21 +10,45 @@ export class Account {
     @PrimaryColumn_()
     id!: string
 
-    @Index_({unique: true})
-    @Column_("text", {nullable: false})
-    address!: string
-
     @Index_()
     @Column_("text", {nullable: true})
     evmAddress!: string | undefined | null
 
-    @OneToMany_(() => TokenHolder, e => e.signer)
-    tokensHeld!: TokenHolder[]
+    @Index_()
+    @Column_("int4", {nullable: false})
+    blockHeight!: number
 
-    @OneToMany_(() => Contract, e => e.signer)
-    contracts!: Contract[]
+    @Column_("jsonb", {nullable: true})
+    identity!: unknown | undefined | null
 
     @Index_()
-    @ManyToOne_(() => Block, {nullable: true})
-    block!: Block
+    @Column_("bool", {nullable: false})
+    active!: boolean
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    freeBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    lockedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    availableBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    reservedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    vestedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    votingBalance!: bigint
+
+    @Column_("int4", {nullable: false})
+    nonce!: number
+
+    @Column_("int4", {nullable: false})
+    evmNonce!: number
+
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 }

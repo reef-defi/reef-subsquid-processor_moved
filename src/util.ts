@@ -15,6 +15,8 @@ export const hexToNativeAddress = (address: string | undefined): string => {
     }
 }
 
+export const toChecksumAddress = (address: string): string => ethers.utils.getAddress(address.trim().toLowerCase());
+
 export const blockIdToHeight = (blockId: string): number => {
     return parseInt(blockId.split('-')[0]);
 }
