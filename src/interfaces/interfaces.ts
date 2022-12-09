@@ -3,6 +3,21 @@ import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@sub
 // import { EvmEventStatus } from "../model/generated/_evmEventStatus";
 // import { EvmEventType } from "../model/generated/_evmEventType";
 
+export interface AccountData {
+    id: string; // native address
+    evmAddress: string;
+    identity: any;
+    active: boolean;
+    freeBalance: bigint;
+    lockedBalance: bigint;
+    availableBalance: bigint;
+    reservedBalance: bigint;
+    vestedBalance: bigint;
+    votingBalance: bigint;
+    nonce: number;
+    evmNonce: number;
+}
+
 export interface ContractData {
     id: string;
     signerAddress: string;

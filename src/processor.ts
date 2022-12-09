@@ -18,6 +18,13 @@ import { Account, Block } from "./model";
 import { blockIdToHeight } from "./util";
 import { Event } from "./types/support";
 import { ContractData } from "./interfaces/interfaces";
+import { processClaimEvmAccount } from "./process/claimEvmAccount";
+import { processEndowed } from "./process/endowed";
+import { processReserved } from "./process/reserved";
+import { processKillAccount } from "./process/killAccount";
+import { processStaking } from "./process/staking";
+import { AccountManager } from "./accountManager";
+import { processNativeTransfer } from "./process/nativeTransfer";
 // import { processErc20Transfer } from "./process/erc20Transfer";
 // import { processErc721Transfer } from "./process/erc721Transfer";
 // import { processErc1155SingleTransfer } from "./process/erc1155SingleTransfer";
@@ -30,6 +37,8 @@ const RPC_URL = "wss://rpc.reefscan.com/ws";
 export const provider = new Provider({
   provider: new WsProvider(RPC_URL),
 });
+export let accountManager = new AccountManager();
+
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange( {from: 0} )
@@ -47,9 +56,10 @@ export type Context = BatchContext<Store, Item>;
 // let evmEventsData: EvmEventData[] = [];
 
 processor.run(database, async (ctx) => {
-  // await provider.api.isReadyOrError;
+  await provider.api.isReadyOrError;
 
   let blocks: Block[] = [];
+  let accounts: Account[] = [];
   // let contractsData: ContractData[] = [];
 
   for (const block of ctx.blocks) {
@@ -68,26 +78,33 @@ processor.run(database, async (ctx) => {
             console.log('Evm.ExecutedFailed');
             break;
       
-          case 'EvmAccounts.ClaimAccount': 
-            console.log(`EvmAccounts.ClaimAccount\n => evm address: ${item.event.args[1]}`);
+          case 'EvmAccounts.ClaimAccount':
+            const accountClaimed = await processClaimEvmAccount(item.event as Event, block.header);
+            if (accountClaimed) accounts.push(accountClaimed);
             break;
       
           case 'Balances.Endowed': 
-            console.log(`Balances.Endowed\n => address: ${item.event.args[0]}, amount?: ${item.event.args[1]}`);
+            const accountEndowed = await processEndowed(item.event as Event, block.header);
+            if (accountEndowed) accounts.push(accountEndowed);
             break;
           case 'Balances.Reserved': 
-            console.log(`Balances.Reserved\n => address: ${item.event.args[0]}, amount?: ${item.event.args[1]}`);
+            const accountReserved = await processReserved(item.event as Event, block.header);
+            if (accountReserved) accounts.push(accountReserved);
             break;
           case 'Balances.Transfer': 
-            console.log(`Balances.Transfer\n => from: ${item.event.args[0]}, to: ${item.event.args[1]}, amount: ${item.event.args[2]}`);
+            const {transfer, accounts: accountsTransfer} = await processNativeTransfer(item.event as Event, block.header);
+            // TODO save transfer entity
+            accounts.push(...accountsTransfer);
             break;
       
           case 'Staking.Rewarded': 
-            console.log('Staking.Rewarded');
+            const {staking, accounts: accountsStaking} = await processStaking(item.event as Event, block.header);
+            // TODO save staking entity
+            accounts.push(...accountsStaking);
             break;
       
           case 'System.KilledAccount': 
-            console.log('System.KilledAccount');
+            accounts.push(await processKillAccount(item.event as Event, block.header));
             break;
       
           default: 
@@ -99,8 +116,8 @@ processor.run(database, async (ctx) => {
 
   console.log(`Saving blocks from ${blocks[0].height} to ${blocks[blocks.length - 1].height}`);
 
-  // Save blocks
   await ctx.store.insert(blocks);
+  await ctx.store.save(accounts);
 
   // // Save contracts
   // const accountIds: Set<string> = new Set();
