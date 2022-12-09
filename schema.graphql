@@ -1,6 +1,7 @@
-# type ChainInfo @entity {
-
-# }
+type ChainInfo @entity {
+  id: ID! # name
+  count: Int!
+}
 
 type Block @entity {
   id: ID!
@@ -18,11 +19,33 @@ type Block @entity {
 }
 
 # type Extrinsic @entity {
-
+#   id: ID!
+#   block: Block @index
+#   index: Int!
+#   hash: String! @index
+#   args: JSON!
+#   docs: String!
+#   method: String! @index
+#   section: String! @index
+#   signer: String! @index
+#   status: ExtrinsicStatus!
+#   errorMessage: String
+#   type: ExtrinsicType!
+#   signedData: JSON
+#   inherentData: JSON
+#   timestamp: DateTime!
 # }
 
 # type Event @entity {
-
+#   id: ID!
+#   block: Block @index
+#   extrinsic: Extrinsic @index
+#   index: Int!
+#   phase: JSON!
+#   section: String! @index
+#   method: String! @index
+#   data: JSON!
+#   timestamp: DateTime!
 # }
 
 type Account @entity {
@@ -48,8 +71,8 @@ type Account @entity {
 
 # type EvmEvent @entity {
 #   id: ID!
-#   # event: Event!
-#   block: Block!
+#   # event: Event! @index
+#   block: Block! @index
 #   eventIndex: Int!
 #   extrinsicIndex: Int!
 #   contract: Contract!
@@ -133,17 +156,43 @@ type Account @entity {
 # ===================== Staking ===========================
 
 # type Staking @entity {
-
+#   id: ID!
+#   signer: Account
+#   event: Event
+#   type: StakingType! @index
+#   amount: BigInt! 
+#   timestamp: DateTime!
 # }
 
 # ===================== Pools =============================
 
 # type Pool @entity {
-
+#   id: ID!
+#   address: String! @index
+#   evmEvent: EvmEvent @index
+#   token1: Contract! @index
+#   token2: Contract! @index
+#   poolDecimal: Int!
+#   decimal1: Int!
+#   decimal2: Int!
 # }
 
 # type PoolEvent @entity {
-
+#   id: ID!
+#   pool: Pool! @index
+#   evmEvent: EvmEvent! @index
+#   toAddress: String @index
+#   senderAddress: String @index
+#   type: PoolType! @index
+#   amount1: BigInt @index
+#   amount2: BigInt @index
+#   amountIn1: BigInt @index
+#   amountIn2: BigInt @index
+#   reserved1: BigInt @index
+#   reserved2: BigInt @index
+#   supply: BigInt @index
+#   totalSupply: BigInt @index
+#   timestamp: DateTime! @index
 # }
 
 # type Candlestick @entity {
@@ -174,6 +223,13 @@ enum EvmEventStatus {
   Error
 }
 
+enum ContractType {
+  ERC20, 
+  ERC721, 
+  ERC1155,
+  other
+}
+
 enum TransferType {
   Native, 
   ERC20, 
@@ -184,4 +240,29 @@ enum TransferType {
 enum TokenHolderType {
   Account, 
   Contract
+}
+
+enum StakingType {
+  Reward, 
+  Slash
+}
+
+enum PoolType {
+  Mint, 
+  Burn, 
+  Swap, 
+  Sync, 
+  Transfer
+}
+
+enum ExtrinsicStatus {
+  success, 
+  error, 
+  unknown
+}
+
+enum ExtrinsicType {
+  signed, 
+  unsigned, 
+  inherent
 }
