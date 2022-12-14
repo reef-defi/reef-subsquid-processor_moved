@@ -1,30 +1,31 @@
+import { Store } from "@subsquid/typeorm-store";
 import { ethers } from "ethers";
 import { Account } from "./model";
 import { provider } from "./processor";
 import { findNativeAddress, toChecksumAddress } from "./util";
 
 export class AccountManager {  
-    allAccounts: {[address: string]: Account};
+    accounts: {[address: string]: Account};
   
     constructor() {
-      this.allAccounts = {};
+      this.accounts = {};
     }
   
-    async process(address: string, blockHeight: number, timestamp: Date, active = true): Promise<Account | undefined> {
+    async process(address: string, blockHeight: number, timestamp: Date, active = true): Promise<void> {
       // If account does not exist, we extract his info and store it
-      if (!this.allAccounts[address]) {
-        this.allAccounts[address] = await this.accountInfo(address, blockHeight, timestamp, active);
-        return new Account({...this.allAccounts[address]});
+      if (!this.accounts[address] || this.accounts[address].blockHeight < blockHeight) {
+        this.accounts[address] = await this.accountInfo(address, blockHeight, timestamp, active);
+        // return new Account({...this.accounts[address]});
       }
 
       // If account is killed, we update the active flag
       if (!active) {
-        this.allAccounts[address].active = false;
-        return new Account({...this.allAccounts[address]});
+        this.accounts[address].active = false;
+        // return new Account({...this.accounts[address]});
       }
   
-        // Account already stored and up to date
-        return undefined;
+      // Account already stored and up to date
+      // return undefined;
     }
   
     // async useEvm(evmAddress: string, blockHeight: number, timestamp: Date, ): Promise<string> {
@@ -40,7 +41,7 @@ export class AccountManager {
     //   const address = await findNativeAddress(evmAddress);
   
     //   // Address can also be of contract and for this case node returns empty string
-    //   // We are only processing allAccounts in allAccounts manager!
+    //   // We are only processing accounts in accounts manager!
     //   if (address !== '') {
     //     await this.use(address, blockHeight, timestamp);
     //     return address;
@@ -49,19 +50,19 @@ export class AccountManager {
     //   return '0x';
     // }
   
-    async save(): Promise<void> {
-      const allAccounts = Object.keys(this.allAccounts);
-      const usedallAccounts = allAccounts.map((address) => this.allAccounts[address]);
+    async save(store: Store): Promise<void> {
+      const accounts = Object.keys(this.accounts);
+      const usedAccounts = accounts.map((address) => this.accounts[address]);
   
-      if (usedallAccounts.length === 0) {
+      if (usedAccounts.length === 0) {
         return;
       }
   
-      // Saving used allAccounts
-    //   await insertallAccounts(usedallAccounts);
+      // Saving used accounts
+      await store.save(usedAccounts);
   
-    //   // Converting allAccounts into token holders
-    //   const tokenHolders: TokenHolder[] = usedallAccounts
+    //   // Converting accounts into token holders
+    //   const tokenHolders: TokenHolder[] = usedaccounts
     //     .map((account) => ({
     //       timestamp: account.timestamp,
     //       signerAddress: account.address,
@@ -74,7 +75,7 @@ export class AccountManager {
     //     }));
   
     //   // Updating account native token holder
-    //   logger.info('Updating native token holders for used allAccounts');
+    //   logger.info('Updating native token holders for used accounts');
     //   await insertAccountTokenHolders(tokenHolders);
     }
   
@@ -97,7 +98,7 @@ export class AccountManager {
           .then((res) => res?.nonce || 0)
         : 0;
   
-        const account: Account = {
+        const account: Account = new Account({
             id: address,
             evmAddress: evmAddr,
             identity: identity,
@@ -112,7 +113,7 @@ export class AccountManager {
             evmNonce: Number(evmNonce) || 0,
             blockHeight: blockHeight,
             timestamp: timestamp,
-        };
+        });
     
         return account;
     }

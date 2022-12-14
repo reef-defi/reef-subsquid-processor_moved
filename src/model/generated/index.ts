@@ -1,2 +1,6 @@
+export * from "./chainInfo.model"
 export * from "./block.model"
+export * from "./extrinsic.model"
+export * from "./_extrinsicStatus"
+export * from "./_extrinsicType"
 export * from "./account.model"

@@ -78,3 +78,13 @@ export const getEvmNonce = async (evmAddress: string): Promise<number> => {
         .then((res): any => res.toJSON())
         .then((res) => res?.nonce || 0);
 };
+
+export const toCamelCase = (input: string): string => {
+    let result = "";
+  
+    for (let word of input.split("_")) {
+      result += word[0].toUpperCase() + word.substring(1);
+    }
+
+    return result[0].toLowerCase() + result.substring(1);
+  }

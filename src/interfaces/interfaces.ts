@@ -68,12 +68,12 @@ export interface EvmLog {
     name: QualifiedName
     args: any
     phase: SubstrateEvent["phase"]
-    extrinsic: Extrinsic
+    extrinsic: ExtrinsicRaw
     call: Call
     pos: number
 }
   
-export interface Extrinsic {
+export interface ExtrinsicRaw {
     id: string
     indexInBlock: number
     call: Call

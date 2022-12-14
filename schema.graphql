@@ -14,27 +14,24 @@ type Block @entity {
   finalized: Boolean! @index
   timestamp: DateTime!
   processorTimestamp: DateTime
-  #accounts: [Account!] @derivedFrom(field: "block")
-  #transfers: [Transfer!] @derivedFrom(field: "block")
 }
 
-# type Extrinsic @entity {
-#   id: ID!
-#   block: Block @index
-#   index: Int!
-#   hash: String! @index
-#   args: JSON!
-#   docs: String!
-#   method: String! @index
-#   section: String! @index
-#   signer: String! @index
-#   status: ExtrinsicStatus!
-#   errorMessage: String
-#   type: ExtrinsicType!
-#   signedData: JSON
-#   inherentData: JSON
-#   timestamp: DateTime!
-# }
+type Extrinsic @entity {
+  id: ID!
+  blockHeight: Int! @index
+  index: Int!
+  hash: String! @index
+  args: JSON!
+  docs: String!
+  method: String! @index
+  section: String! @index
+  signer: String! @index
+  status: ExtrinsicStatus!
+  errorMessage: String
+  type: ExtrinsicType!
+  signedData: JSON
+  timestamp: DateTime!
+}
 
 # type Event @entity {
 #   id: ID!
@@ -63,10 +60,6 @@ type Account @entity {
   nonce: Int!
   evmNonce: Int!
   timestamp: DateTime!
-  # transfersTo: [Transfer!] @derivedFrom(field: "to")
-  # transfersFrom: [Transfer!] @derivedFrom(field: "from")
-  #tokensHeld: [TokenHolder!] @derivedFrom(field: "signer")
-  #contracts: [Contract!] @derivedFrom(field: "signer")
 }
 
 # type EvmEvent @entity {
