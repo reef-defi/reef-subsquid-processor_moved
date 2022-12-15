@@ -14,10 +14,8 @@ import * as erc721 from "./abi/ERC721";
 import * as erc1155 from "./abi/ERC1155";
 import { EventData } from "@subsquid/substrate-processor/lib/interfaces/dataSelection";
 import { processBlock } from "./process/block";
-import { Account, Block, Event, Extrinsic } from "./model";
-import { blockIdToHeight } from "./util";
+import { Account, Block, Contract, Event, Extrinsic } from "./model";
 import { EventRaw } from "./interfaces/interfaces";
-import { ContractData, ExtrinsicRaw } from "./interfaces/interfaces";
 import { processClaimEvmAccount } from "./process/claimEvmAccount";
 import { processEndowed } from "./process/endowed";
 import { processReserved } from "./process/reserved";
@@ -32,7 +30,7 @@ import { processEvent } from "./process/event";
 // import { processErc1155SingleTransfer } from "./process/erc1155SingleTransfer";
 // import { processErc1155BatchTransfer } from "./process/erc1155BatchTransfer";
 // import { processEvmLog } from "./process/evmLogEvent";
-// import { processContractCreated } from "./process/contractCreated";
+import { processContractCreated } from "./process/contractCreated";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -42,7 +40,7 @@ export const provider = new Provider({
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange( {from: 0} )
+  .setBlockRange( {from: 50_000} )
   .setDataSource({
     chain: RPC_URL,
     archive: 'http://localhost:8888/graphql'
@@ -62,7 +60,7 @@ processor.run(database, async (ctx) => {
   let blocks: Block[] = [];
   let extrinsics: Map<string, Extrinsic> = new Map();
   let events: Event[] = [];
-  // let contractsData: ContractData[] = [];
+  let contracts: Contract[] = [];
 
   const accountManager = new AccountManager();
 
@@ -84,7 +82,7 @@ processor.run(database, async (ctx) => {
             // await selectEvmLogEvent(eventRaw as EvmLog, block.header);
             break;
           case 'EVM.Created':
-            // contractsData.push(await processContractCreated(eventRaw as EvmLog, block.header));
+            contracts.push(processContractCreated(eventRaw, block.header));
             break;
           case 'EVM.ExecutedFailed': 
             console.log('Evm.ExecutedFailed');
@@ -124,6 +122,7 @@ processor.run(database, async (ctx) => {
   await ctx.store.insert([...extrinsics.values()]);
   await ctx.store.insert(events);
   await accountManager.save(ctx.store);
+  await ctx.store.insert(contracts);
 
   // await ctx.store.save([...accountManager.accounts.values()]);
 

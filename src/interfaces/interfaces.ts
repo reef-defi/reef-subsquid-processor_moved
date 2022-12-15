@@ -18,16 +18,16 @@ export interface AccountData {
     evmNonce: number;
 }
 
-export interface ContractData {
-    id: string;
-    signerAddress: string;
-    bytecode: string;
-    bytecodeContext: string;
-    bytecodeArguments: string;
-    gasLimit: number;
-    storageLimit: number;
-    timestamp: Date;
-}
+// export interface ContractData {
+//     id: string;
+//     signerAddress: string;
+//     bytecode: string;
+//     bytecodeContext: string;
+//     bytecodeArguments: string;
+//     gasLimit: number;
+//     storageLimit: number;
+//     timestamp: Date;
+// }
 
 // export interface EvmEventData {
 //     id: string;
@@ -61,17 +61,6 @@ export interface ContractData {
 //     nftId: bigint | undefined | null;
 //     errorMessage: string | undefined | null;
 // };
-
-export interface EvmLog {
-    id: string
-    indexInBlock: number
-    name: QualifiedName
-    args: any
-    phase: SubstrateEvent["phase"]
-    extrinsic: ExtrinsicRaw
-    call: Call
-    pos: number
-}
   
 export interface ExtrinsicRaw {
     id: string
@@ -89,10 +78,11 @@ export interface EventRaw {
     id: string
     indexInBlock: number
     extrinsic: ExtrinsicRaw
-    phase: string
-    name: string
+    phase: SubstrateEvent["phase"]
+    name: QualifiedName
     args: any
     pos: number
+    call?: Call
 }
   
 export interface Call {

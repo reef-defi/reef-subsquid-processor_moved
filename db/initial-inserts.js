@@ -1,6 +1,18 @@
 class InitialInserts {
   
   async up(db) {
+    // Insert chain info
+    await db.query(`
+      INSERT INTO chain_info 
+        (name, count) 
+      VALUES
+        ('blocks', 0),
+        ('events', 0),
+        ('accounts', 0),
+        ('contracts', 0),
+        ('transfers', 0),
+        ('extrinsics', 0);
+    `);
     // Insert block
     await db.query(`
       INSERT INTO block
