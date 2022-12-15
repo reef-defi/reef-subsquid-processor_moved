@@ -1,10 +1,11 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { ExtrinsicRaw } from "../interfaces/interfaces";
-import { Extrinsic, ExtrinsicStatus, ExtrinsicType } from "../model";
+import { Store } from "@subsquid/typeorm-store";
+import { ExtrinsicData, ExtrinsicRaw } from "../interfaces/interfaces";
+import { Block, Extrinsic, ExtrinsicStatus, ExtrinsicType } from "../model";
 import { provider } from "../processor";
 import { hexToNativeAddress, toCamelCase } from "../util";
 
-export const processExtrinsic = (extrinsicRaw: ExtrinsicRaw, blockHeader: SubstrateBlock): Extrinsic => {
+export const processExtrinsic = (extrinsicRaw: ExtrinsicRaw, blockHeader: SubstrateBlock): ExtrinsicData => {
     let signer = null;
     if (extrinsicRaw.signature?.address?.value) {
         signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
@@ -14,10 +15,10 @@ export const processExtrinsic = (extrinsicRaw: ExtrinsicRaw, blockHeader: Substr
         // console.log(feeDetails.toJSON());
     }
 
-    const extrinsic = new Extrinsic({
+    const extrinsicData = {
         id: extrinsicRaw.id,
-        blockHeight: blockHeader.height,
-        index: extrinsicRaw.indexInBlock, // ?
+        blockId: blockHeader.id,
+        index: extrinsicRaw.indexInBlock,
         hash: extrinsicRaw.hash,
         args: extrinsicRaw.call.args ? Object.keys(extrinsicRaw.call.args).map(key => extrinsicRaw.call.args[key]) : [],
         docs: "", // TODO
@@ -29,7 +30,24 @@ export const processExtrinsic = (extrinsicRaw: ExtrinsicRaw, blockHeader: Substr
         type: signer ? ExtrinsicType.signed : ExtrinsicType.unsigned,
         signedData: null, // TODO,
         timestamp: new Date(blockHeader.timestamp),
+    };
+
+    return extrinsicData;
+}
+
+export const saveExtrinsics = async (extrinsicsData: ExtrinsicData[], blocks: Map<string, Block>, store: Store): Promise<Map<string, Extrinsic>> => {
+    const extrinsics: Map<string, Extrinsic> = new Map();
+    extrinsicsData.forEach(extrinsicData => {
+        const block = blocks.get(extrinsicData.blockId);
+        if (!block) throw new Error(`Block ${extrinsicData.blockId} not found`); // TODO: handle this error
+        
+        extrinsics.set(extrinsicData.id, new Extrinsic ({
+            ...extrinsicData,
+            block: block
+        }));
     });
 
-    return extrinsic;
+    await store.insert([...extrinsics.values()]);
+
+    return extrinsics;
 }

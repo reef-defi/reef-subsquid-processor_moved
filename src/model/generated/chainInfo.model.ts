@@ -6,6 +6,9 @@ export class ChainInfo {
         Object.assign(this, props)
     }
 
+    /**
+     * Name
+     */
     @PrimaryColumn_()
     id!: string
 

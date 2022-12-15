@@ -4,7 +4,7 @@ class InitialInserts {
     // Insert chain info
     await db.query(`
       INSERT INTO chain_info 
-        (name, count) 
+        (id, count) 
       VALUES
         ('blocks', 0),
         ('events', 0),
@@ -20,20 +20,20 @@ class InitialInserts {
       VALUES
         (-1, -1, '', '', '', '', '', TRUE, '2020-10-01 00:00:00');
     `);
-    // Insert accounts
-    await db.query(`
-      INSERT INTO account 
-        (id, evm_address, block_height, active, available_balance, free_balance, locked_balance, reserved_balance, vested_balance, voting_balance, nonce, evm_nonce, timestamp)
-      VALUES
-        ('0x', '0x', -1, true, 0, 0, 0, 0, 0, 0, 0, 0, '2020-10-01 00:00:00'),
-        ('deleted', 'deleted', -1, true, 0, 0, 0, 0, 0, 0, 0, 0, '2020-10-01 00:00:00');
-    `);
     // Insert extrinsic
     await db.query(`
       INSERT INTO extrinsic
-        (id, block_height, index, hash, args, docs, method, section, signer, status, type, timestamp)
+        (id, block_id, index, hash, args, docs, method, section, signer, status, type, timestamp)
       VALUES
         (-1, -1, 0, '', '[]', '', '', '', '0x', 'success', 'unsigned', '2020-10-01 00:00:00');
+    `);
+    // Insert accounts
+    await db.query(`
+      INSERT INTO account 
+        (id, evm_address, block_id, active, available_balance, free_balance, locked_balance, reserved_balance, vested_balance, voting_balance, nonce, evm_nonce, timestamp)
+      VALUES
+        ('0x', '0x', -1, true, 0, 0, 0, 0, 0, 0, 0, 0, '2020-10-01 00:00:00'),
+        ('deleted', 'deleted', -1, true, 0, 0, 0, 0, 0, 0, 0, 0, '2020-10-01 00:00:00');
     `);
     // Insert genesis contracts
     await db.query(`

@@ -1,4 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_, ManyToOne as ManyToOne_} from "typeorm"
+import {Extrinsic} from "./extrinsic.model"
+import {Account} from "./account.model"
 
 @Entity_()
 export class Contract {
@@ -6,16 +8,20 @@ export class Contract {
         Object.assign(this, props)
     }
 
+    /**
+     * Address
+     */
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
-    @Column_("text", {nullable: true})
-    extrinsicId!: string | undefined | null
+    @Index_({unique: true})
+    @OneToOne_(() => Extrinsic, {nullable: false})
+    @JoinColumn_()
+    extrinsic!: Extrinsic
 
     @Index_()
-    @Column_("text", {nullable: true})
-    signer!: string | undefined | null
+    @ManyToOne_(() => Account, {nullable: true})
+    signer!: Account
 
     @Column_("text", {nullable: false})
     bytecode!: string

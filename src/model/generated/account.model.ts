@@ -1,5 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_, OneToMany as OneToMany_} from "typeorm"
 import * as marshal from "./marshal"
+import {Block} from "./block.model"
+import {Contract} from "./contract.model"
 
 @Entity_()
 export class Account {
@@ -7,6 +9,9 @@ export class Account {
         Object.assign(this, props)
     }
 
+    /**
+     * Native address
+     */
     @PrimaryColumn_()
     id!: string
 
@@ -15,8 +20,8 @@ export class Account {
     evmAddress!: string | undefined | null
 
     @Index_()
-    @Column_("int4", {nullable: false})
-    blockHeight!: number
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
     @Column_("jsonb", {nullable: true})
     identity!: unknown | undefined | null
@@ -51,4 +56,7 @@ export class Account {
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
+
+    @OneToMany_(() => Contract, e => e.signer)
+    contracts!: Contract[]
 }

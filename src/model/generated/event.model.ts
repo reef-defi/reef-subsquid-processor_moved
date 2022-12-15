@@ -1,4 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Extrinsic} from "./extrinsic.model"
+import {Block} from "./block.model"
 
 @Entity_()
 export class Event {
@@ -6,16 +8,19 @@ export class Event {
         Object.assign(this, props)
     }
 
+    /**
+     * 000000..00<blockNum>-000<index>-<shorthash>
+     */
     @PrimaryColumn_()
     id!: string
 
     @Index_()
-    @Column_("int4", {nullable: false})
-    blockHeight!: number
+    @ManyToOne_(() => Extrinsic, {nullable: true})
+    extrinsic!: Extrinsic
 
     @Index_()
-    @Column_("text", {nullable: true})
-    extrinsicId!: string | undefined | null
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
     @Column_("int4", {nullable: false})
     index!: number

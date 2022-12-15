@@ -1,6 +1,9 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToMany as OneToMany_} from "typeorm"
+import {Block} from "./block.model"
 import {ExtrinsicStatus} from "./_extrinsicStatus"
 import {ExtrinsicType} from "./_extrinsicType"
+import {Event} from "./event.model"
+import {Contract} from "./contract.model"
 
 @Entity_()
 export class Extrinsic {
@@ -8,12 +11,15 @@ export class Extrinsic {
         Object.assign(this, props)
     }
 
+    /**
+     * 000000..00<blockNum>-000<index>-<shorthash>
+     */
     @PrimaryColumn_()
     id!: string
 
     @Index_()
-    @Column_("int4", {nullable: false})
-    blockHeight!: number
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
     @Column_("int4", {nullable: false})
     index!: number
@@ -54,4 +60,8 @@ export class Extrinsic {
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
+
+    @OneToMany_(() => Event, e => e.extrinsic)
+    events!: Event[]
+
 }

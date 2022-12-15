@@ -1,10 +1,12 @@
 type ChainInfo @entity {
-  id: ID! # name
+  "Name"
+  id: ID!
   count: Int!
 }
 
 type Block @entity {
-  id: ID! # 000000..00<blockNum>-<shorthash>
+  "000000..00<blockNum>-<shorthash>"
+  id: ID!
   height: Int! @index
   hash: String! @index
   author: String!
@@ -14,11 +16,15 @@ type Block @entity {
   finalized: Boolean! @index
   timestamp: DateTime!
   processorTimestamp: DateTime
+  extrinsics: [Extrinsic!] @derivedFrom(field: "block")
+  events: [Event!] @derivedFrom(field: "block")
+  accounts: [Account!] @derivedFrom(field: "block")
 }
 
 type Extrinsic @entity {
-  id: ID! # 000000..00<blockNum>-000<index>-<shorthash>
-  blockHeight: Int! @index
+  "000000..00<blockNum>-000<index>-<shorthash>"
+  id: ID!
+  block: Block!
   index: Int!
   hash: String! @index
   args: JSON!
@@ -31,12 +37,15 @@ type Extrinsic @entity {
   type: ExtrinsicType!
   signedData: JSON
   timestamp: DateTime!
+  events: [Event!] @derivedFrom(field: "extrinsic")
+  contract: Contract @derivedFrom(field: "extrinsic")
 }
 
 type Event @entity {
-  id: ID!  # 000000..00<blockNum>-000<index>-<shorthash>
-  blockHeight: Int! @index # FK?
-  extrinsicId: String @index # FK?
+  "000000..00<blockNum>-000<index>-<shorthash>"
+  id: ID!
+  extrinsic: Extrinsic!
+  block: Block!
   index: Int!
   phase: String!
   section: String! @index
@@ -46,9 +55,10 @@ type Event @entity {
 }
 
 type Account @entity {
-  id: ID! # native address
+  "Native address"
+  id: ID!
   evmAddress: String @index
-  blockHeight: Int! @index # FK?
+  block: Block!
   identity: JSON
   active: Boolean! @index
   freeBalance: BigInt!
@@ -60,12 +70,14 @@ type Account @entity {
   nonce: Int!
   evmNonce: Int!
   timestamp: DateTime!
+  contracts: [Contract!] @derivedFrom(field: "signer")
 }
 
 type Contract @entity {
-  id: ID! # address
-  extrinsicId: String @index # FK?
-  signer: String @index # FK?
+  "Address"
+  id: ID!
+  extrinsic: Extrinsic! @unique
+  signer: Account!
   bytecode: String!
   bytecodeContext: String!
   bytecodeArguments: String!

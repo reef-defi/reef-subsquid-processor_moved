@@ -1,11 +1,39 @@
 import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@subsquid/substrate-processor"
-// import { TransferType } from "../model";
-// import { EvmEventStatus } from "../model/generated/_evmEventStatus";
-// import { EvmEventType } from "../model/generated/_evmEventType";
+import { ExtrinsicStatus, ExtrinsicType } from "../model"
+export interface ExtrinsicData {
+    id: string,
+    blockId: string,
+    index: number,
+    hash: string,
+    args: any,
+    docs: string,
+    method: string,
+    section: string,
+    signer: string,
+    status: ExtrinsicStatus,
+    errorMessage: string | undefined | null,
+    type: ExtrinsicType,
+    signedData: unknown | undefined | null,
+    timestamp: Date
+}
+
+
+export interface EventData {
+    id: string,
+    blockId: string,
+    extrinsicId: string,
+    index: number,
+    phase: string,
+    section: string,
+    method: string,
+    data: any,
+    timestamp: Date
+}
 
 export interface AccountData {
     id: string; // native address
     evmAddress: string;
+    blockId: string;
     identity: any;
     active: boolean;
     freeBalance: bigint;
@@ -16,6 +44,8 @@ export interface AccountData {
     votingBalance: bigint;
     nonce: number;
     evmNonce: number;
+    timestamp: Date;
+    blockHeight: number;
 }
 
 // export interface ContractData {

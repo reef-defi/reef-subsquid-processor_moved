@@ -1,4 +1,5 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { Store } from "@subsquid/typeorm-store";
 import { Block } from "../model/generated/block.model";
 import { hexToNativeAddress } from "../util";
 
@@ -17,4 +18,8 @@ export const processBlock = (blockHeader: SubstrateBlock): Block => {
     });
 
     return block;
+}
+
+export const saveBlocks = async (blocks: Block[], store: Store): Promise<void> => {
+    await store.insert(blocks);
 }

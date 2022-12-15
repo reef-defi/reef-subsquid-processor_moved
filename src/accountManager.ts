@@ -1,31 +1,23 @@
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
-import { ethers } from "ethers";
-import { Account } from "./model";
+import { AccountData } from "./interfaces/interfaces";
+import { Account, Block } from "./model";
 import { provider } from "./processor";
-import { findNativeAddress, toChecksumAddress } from "./util";
+import { toChecksumAddress } from "./util";
 
 export class AccountManager {  
-    accounts: {[address: string]: Account};
+    accountsData: Map<string, AccountData> = new Map();
   
-    constructor() {
-      this.accounts = {};
-    }
-  
-    async process(address: string, blockHeight: number, timestamp: Date, active = true): Promise<void> {
-      // If account does not exist, we extract his info and store it
-      if (!this.accounts[address] || this.accounts[address].blockHeight < blockHeight) {
-        this.accounts[address] = await this.accountInfo(address, blockHeight, timestamp, active);
-        // return new Account({...this.accounts[address]});
-      }
-
-      // If account is killed, we update the active flag
-      if (!active) {
-        this.accounts[address].active = false;
-        // return new Account({...this.accounts[address]});
-      }
-  
-      // Account already stored and up to date
-      // return undefined;
+    async process(address: string, blockHeader: SubstrateBlock, active = true): Promise<void> {
+        let accountData = this.accountsData.get(address);
+        
+        // If account does not exist or block height is lower than current, we extract its data and store it
+        if (!accountData || accountData.blockHeight < blockHeader.height) {
+            this.accountsData.set(address, await this.getAccountData(address, blockHeader, active));
+        } else if (!active) { // If account already exists and is killed, we update the active flag
+            accountData.active = false;
+            this.accountsData.set(address, accountData);
+        }
     }
   
     // async useEvm(evmAddress: string, blockHeight: number, timestamp: Date, ): Promise<string> {
@@ -50,16 +42,22 @@ export class AccountManager {
     //   return '0x';
     // }
   
-    async save(store: Store): Promise<void> {
-      const accounts = Object.keys(this.accounts);
-      const usedAccounts = accounts.map((address) => this.accounts[address]);
-  
-      if (usedAccounts.length === 0) {
-        return;
-      }
-  
-      // Saving used accounts
-      await store.save(usedAccounts);
+    async save(blocks: Map<string, Block>, store: Store): Promise<Map<string, Account>> {
+        const accounts: Map<string, Account> = new Map();
+
+        this.accountsData.forEach(accountData => {
+            const block = blocks.get(accountData.blockId);
+            if (!block) throw new Error(`Block ${accountData.blockId} not found`); // TODO: handle this error
+            
+            accounts.set(accountData.id, new Account ({
+                ...accountData,
+                block: block
+            }));
+        });
+    
+        await store.save([...accounts.values()]);
+    
+        return accounts;
   
     //   // Converting accounts into token holders
     //   const tokenHolders: TokenHolder[] = usedaccounts
@@ -79,26 +77,26 @@ export class AccountManager {
     //   await insertAccountTokenHolders(tokenHolders);
     }
   
-    private async accountInfo(address: string, blockHeight: number, timestamp: Date, active: boolean): Promise<Account> {
-      const [evmAddress, balances, identity] = await Promise.all([
-        provider.api.query.evmAccounts.evmAddresses(address),
-        provider.api.derive.balances.all(address),
-        provider.api.derive.accounts.identity(address),
-      ]);
+    private async getAccountData(address: string, blockHeader: SubstrateBlock, active: boolean): Promise<AccountData> {
+        const [evmAddress, balances, identity] = await Promise.all([
+            provider.api.query.evmAccounts.evmAddresses(address),
+            provider.api.derive.balances.all(address),
+            provider.api.derive.accounts.identity(address),
+        ]);
+    
+        // TODO clean below code
+        const addr = evmAddress.toString();
+        const evmAddr = addr !== ''
+            ? toChecksumAddress(addr)
+            : addr;
   
-      // TODO clean below code
-      const addr = evmAddress.toString();
-      const evmAddr = addr !== ''
-        ? toChecksumAddress(addr)
-        : addr;
-  
-      const evmNonce: string | null = addr !== ''
-        ? await provider.api.query.evm.accounts(addr)
-          .then((res): any => res.toJSON())
-          .then((res) => res?.nonce || 0)
-        : 0;
-  
-        const account: Account = new Account({
+        const evmNonce: string | null = addr !== ''
+            ? await provider.api.query.evm.accounts(addr)
+            .then((res): any => res.toJSON())
+            .then((res) => res?.nonce || 0)
+            : 0;
+    
+        return {
             id: address,
             evmAddress: evmAddr,
             identity: identity,
@@ -111,11 +109,10 @@ export class AccountManager {
             votingBalance: BigInt(balances.votingBalance.toString()),
             nonce: Number(balances.accountNonce),
             evmNonce: Number(evmNonce) || 0,
-            blockHeight: blockHeight,
-            timestamp: timestamp,
-        });
-    
-        return account;
+            blockHeight: blockHeader.height,
+            timestamp: new Date(blockHeader.timestamp),
+            blockId: blockHeader.id,
+        };
     }
   }
 
