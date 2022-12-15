@@ -1,12 +1,12 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { provider } from "../processor";
-import { Event } from "../types/support";
+import { Event as EventRaw } from "../types/support";
 import { hexToNativeAddress } from "../util";
 
-export const processStaking = async (event: Event, blockHeader: SubstrateBlock, accountManager: AccountManager): Promise<any> => {
-    let signer = hexToNativeAddress(event.args[0]);
-    const amount = event.args[1];
+export const processStaking = async (eventRaw: EventRaw, blockHeader: SubstrateBlock, accountManager: AccountManager): Promise<any> => {
+    let signer = hexToNativeAddress(eventRaw.args[0]);
+    const amount = eventRaw.args[1];
 
     await accountManager.process(signer, blockHeader.height, new Date(blockHeader.timestamp));
 

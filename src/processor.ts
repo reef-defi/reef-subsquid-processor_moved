@@ -14,9 +14,9 @@ import * as erc721 from "./abi/ERC721";
 import * as erc1155 from "./abi/ERC1155";
 import { EventData } from "@subsquid/substrate-processor/lib/interfaces/dataSelection";
 import { processBlock } from "./process/block";
-import { Account, Block, Extrinsic } from "./model";
+import { Account, Block, Event, Extrinsic } from "./model";
 import { blockIdToHeight } from "./util";
-import { Event } from "./types/support";
+import { EventRaw } from "./interfaces/interfaces";
 import { ContractData, ExtrinsicRaw } from "./interfaces/interfaces";
 import { processClaimEvmAccount } from "./process/claimEvmAccount";
 import { processEndowed } from "./process/endowed";
@@ -26,6 +26,7 @@ import { processStaking } from "./process/staking";
 import { AccountManager } from "./accountManager";
 import { processNativeTransfer } from "./process/nativeTransfer";
 import { processExtrinsic } from "./process/extrinsic";
+import { processEvent } from "./process/event";
 // import { processErc20Transfer } from "./process/erc20Transfer";
 // import { processErc721Transfer } from "./process/erc721Transfer";
 // import { processErc1155SingleTransfer } from "./process/erc1155SingleTransfer";
@@ -60,6 +61,7 @@ processor.run(database, async (ctx) => {
 
   let blocks: Block[] = [];
   let extrinsics: Map<string, Extrinsic> = new Map();
+  let events: Event[] = [];
   // let contractsData: ContractData[] = [];
 
   const accountManager = new AccountManager();
@@ -69,48 +71,48 @@ processor.run(database, async (ctx) => {
 
     for (const item of block.items) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
-        const extRaw = item.event.extrinsic as ExtrinsicRaw;
-        if (!extrinsics.has(extRaw.id)) {
-          extrinsics.set(extRaw.id, processExtrinsic(item.event.extrinsic as ExtrinsicRaw, block.header));
+        const eventRaw = item.event as EventRaw;
+        
+        if (!extrinsics.has(eventRaw.extrinsic.id)) {
+          extrinsics.set(eventRaw.extrinsic.id, processExtrinsic(eventRaw.extrinsic, block.header));
         }
+
+        events.push(processEvent(eventRaw, block.header));
 
         switch (item.name as string) {
           case 'EVM.Log': 
-            // await selectEvmLogEvent(item.event as EvmLog, block.header);
+            // await selectEvmLogEvent(eventRaw as EvmLog, block.header);
             break;
           case 'EVM.Created':
-            // contractsData.push(await processContractCreated(item.event as EvmLog, block.header));
+            // contractsData.push(await processContractCreated(eventRaw as EvmLog, block.header));
             break;
           case 'EVM.ExecutedFailed': 
             console.log('Evm.ExecutedFailed');
             break;
       
           case 'EvmAccounts.ClaimAccount':
-            await processClaimEvmAccount(item.event as Event, block.header, accountManager);
+            await processClaimEvmAccount(eventRaw, block.header, accountManager);
             break;
       
           case 'Balances.Endowed': 
-            await processEndowed(item.event as Event, block.header, accountManager);
+            await processEndowed(eventRaw, block.header, accountManager);
             break;
           case 'Balances.Reserved': 
-            const accountReserved = await processReserved(item.event as Event, block.header, accountManager);
+            const accountReserved = await processReserved(eventRaw, block.header, accountManager);
             break;
           case 'Balances.Transfer': 
-            const transfer = await processNativeTransfer(item.event as Event, block.header, accountManager);
+            const transfer = await processNativeTransfer(eventRaw, block.header, accountManager);
             // TODO save transfer entity
             break;
       
           case 'Staking.Rewarded': 
-            const staking = await processStaking(item.event as Event, block.header, accountManager);
+            const staking = await processStaking(eventRaw, block.header, accountManager);
             // TODO save staking entity
             break;
       
           case 'System.KilledAccount': 
-            await processKillAccount(item.event as Event, block.header, accountManager);
+            await processKillAccount(eventRaw, block.header, accountManager);
             break;
-      
-          default: 
-            // console.log('default event: ', item.name);
         }
       }
     }    
@@ -120,6 +122,7 @@ processor.run(database, async (ctx) => {
 
   await ctx.store.insert(blocks);
   await ctx.store.insert([...extrinsics.values()]);
+  await ctx.store.insert(events);
   await accountManager.save(ctx.store);
 
   // await ctx.store.save([...accountManager.accounts.values()]);

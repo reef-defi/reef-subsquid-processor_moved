@@ -1,10 +1,9 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
-import { Account } from "../model";
-import { Event } from "../types/support";
+import { EventRaw } from "../interfaces/interfaces";
 import { hexToNativeAddress } from "../util";
 
-export const processClaimEvmAccount = async (event: Event, blockHeader: SubstrateBlock, accountManager: AccountManager): Promise<void> => {
-    const address = hexToNativeAddress(event.args[0]);
+export const processClaimEvmAccount = async (eventRaw: EventRaw, blockHeader: SubstrateBlock, accountManager: AccountManager): Promise<void> => {
+    const address = hexToNativeAddress(eventRaw.args[0]);
     await accountManager.process(address, blockHeader.height, new Date(blockHeader.timestamp));
 }

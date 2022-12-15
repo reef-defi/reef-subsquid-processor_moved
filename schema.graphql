@@ -33,17 +33,17 @@ type Extrinsic @entity {
   timestamp: DateTime!
 }
 
-# type Event @entity {
-#   id: ID!
-#   block: Block @index
-#   extrinsic: Extrinsic @index
-#   index: Int!
-#   phase: JSON!
-#   section: String! @index
-#   method: String! @index
-#   data: JSON!
-#   timestamp: DateTime!
-# }
+type Event @entity {
+  id: ID!
+  blockHeight: Int! @index
+  extrinsicId: String @index
+  index: Int!
+  phase: String!
+  section: String! @index
+  method: String! @index
+  data: JSON!
+  timestamp: DateTime!
+}
 
 type Account @entity {
   id: ID! # native address

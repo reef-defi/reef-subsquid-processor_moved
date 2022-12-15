@@ -84,6 +84,16 @@ export interface ExtrinsicRaw {
     pos: number
     error?: any
 }
+
+export interface EventRaw {
+    id: string
+    indexInBlock: number
+    extrinsic: ExtrinsicRaw
+    phase: string
+    name: string
+    args: any
+    pos: number
+}
   
 export interface Call {
     id: string
