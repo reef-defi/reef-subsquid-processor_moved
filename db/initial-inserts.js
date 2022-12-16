@@ -38,7 +38,7 @@ class InitialInserts {
     // Insert genesis contracts
     await db.query(`
       INSERT INTO contract
-        (id, extrinsic_id, signer, bytecode, bytecode_context, bytecode_arguments, gas_limit, storage_limit, timestamp)
+        (id, extrinsic_id, signer_id, bytecode, bytecode_context, bytecode_arguments, gas_limit, storage_limit, timestamp)
       VALUES
       -- REEF
         (

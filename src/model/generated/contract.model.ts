@@ -1,4 +1,4 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_, ManyToOne as ManyToOne_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import {Extrinsic} from "./extrinsic.model"
 import {Account} from "./account.model"
 
@@ -14,9 +14,8 @@ export class Contract {
     @PrimaryColumn_()
     id!: string
 
-    @Index_({unique: true})
-    @OneToOne_(() => Extrinsic, {nullable: false})
-    @JoinColumn_()
+    @Index_()
+    @ManyToOne_(() => Extrinsic, {nullable: true})
     extrinsic!: Extrinsic
 
     @Index_()

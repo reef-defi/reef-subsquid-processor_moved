@@ -11,10 +11,11 @@ import * as erc721 from "./abi/ERC721";
 import * as erc1155 from "./abi/ERC1155";
 import { processBlock, saveBlocks } from "./process/block";
 import { Block, Contract, Event } from "./model";
-import { EventData, EventRaw, ExtrinsicData } from "./interfaces/interfaces";
+import { ContractData, EventData, EventRaw, ExtrinsicData } from "./interfaces/interfaces";
 import { AccountManager } from "./accountManager";
 import { processExtrinsic, saveExtrinsics } from "./process/extrinsic";
 import { processEvent, saveEvents } from "./process/event";
+import { processContractCreated } from "./process/contractCreated";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -44,7 +45,7 @@ processor.run(database, async (ctx) => {
   const blocks: Map<string, Block> = new Map();
   const extrinsicsData: Map<string, ExtrinsicData> = new Map();
   const eventsData: Map<string, EventData> = new Map();
-  // let contractsData: Map<string, ContractData> = new Map();
+  const contractsData: Map<string, ContractData> = new Map();
 
   const accountManager = new AccountManager();
 
@@ -66,7 +67,8 @@ processor.run(database, async (ctx) => {
             // await selectEvmLogEvent(eventRaw as EvmLog, block.header);
             break;
           case 'EVM.Created':
-            // contracts.push(processContractCreated(eventRaw, block.header));
+            const contractData = processContractCreated(eventRaw, block.header);
+            contractsData.set(contractData.id, contractData);
             break;
           case 'EVM.ExecutedFailed': 
             console.log('Evm.ExecutedFailed');

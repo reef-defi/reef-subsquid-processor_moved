@@ -48,16 +48,17 @@ export interface AccountData {
     blockHeight: number;
 }
 
-// export interface ContractData {
-//     id: string;
-//     signerAddress: string;
-//     bytecode: string;
-//     bytecodeContext: string;
-//     bytecodeArguments: string;
-//     gasLimit: number;
-//     storageLimit: number;
-//     timestamp: Date;
-// }
+export interface ContractData {
+    id: string;
+    signerAddress: string;
+    extrinsicId: string;
+    bytecode: string;
+    bytecodeContext: string;
+    bytecodeArguments: string;
+    gasLimit: number;
+    storageLimit: number;
+    timestamp: Date;
+}
 
 // export interface EvmEventData {
 //     id: string;

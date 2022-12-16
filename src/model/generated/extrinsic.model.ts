@@ -64,4 +64,6 @@ export class Extrinsic {
     @OneToMany_(() => Event, e => e.extrinsic)
     events!: Event[]
 
+    @OneToMany_(() => Contract, e => e.extrinsic)
+    contracts!: Contract[]
 }

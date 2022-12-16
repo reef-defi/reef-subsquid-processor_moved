@@ -38,7 +38,8 @@ type Extrinsic @entity {
   signedData: JSON
   timestamp: DateTime!
   events: [Event!] @derivedFrom(field: "extrinsic")
-  contract: Contract @derivedFrom(field: "extrinsic")
+  contracts: [Contract!] @derivedFrom(field: "extrinsic") 
+  # A extrinsic can have only one contract, it is required to use an array for the precompiled contracts, that reference the same virtual extrinsic with id -1.
 }
 
 type Event @entity {
@@ -76,7 +77,7 @@ type Account @entity {
 type Contract @entity {
   "Address"
   id: ID!
-  extrinsic: Extrinsic! @unique
+  extrinsic: Extrinsic!
   signer: Account!
   bytecode: String!
   bytecodeContext: String!
