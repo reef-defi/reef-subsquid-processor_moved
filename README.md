@@ -1,12 +1,12 @@
-# EVM squid template (FireSquid edition)
+# Reef Explorer squid
 
-This is a FireSquid version of the sample [squid](https://subsquid.io) showcasing EVM log indexing for substrate chains with a Frontier EVM pallete, like Astar or Moonbeam. This template indexes [Moonsama](https://moonsama.com/) token transfers over the [Moonriver network](https://moonbeam.network/networks/moonriver/) and serves them via graphql API.
+[Substrate processor](https://docs.subsquid.io/develop-a-squid/substrate-processor/), including support for EVM events. Built upon [squid Frontier EVM template](https://github.com/subsquid/squid-frontier-evm-template) and adapted to be used with Reef network.
 
 ## Quickstart
 
 ```bash
 # 1. Install dependencies
-npm ci
+yarn
 
 # 2. Compile typescript files
 make build
@@ -25,10 +25,38 @@ make process
 #    and run
 make serve
 ```
+## Public archive
 
-## Migrate from v5 to FireSquid
+Subsquid provides archive data sources with API playgrounds available on the [Aquarium Archive](https://app.subsquid.io/aquarium/archives) page.
 
-To migrate old (v5) Squids to FireSquid, follow the [Migration Guide](https://docs.subsquid.io/docs/guides/migrate-to-fire-squid/)
+```typescript
+processor.setDataSource({
+  archive: lookupArchive("reef")
+  //...
+});
+```
+
+## Self-hosted archive
+
+```bash
+make archive-up
+```
+
+To drop the archive, run
+
+```bash
+make archive-down
+```
+
+The archive gateway will be started at port `8888`, and it can immediately be used with the processor (even if it's not in sync):
+
+```typescript
+processor.setDataSource({
+  archive: `http://localhost:8888/graphql`,
+});
+```
+
+Additionally, an explorer GraphQL API and a playground will be started at `http://localhost:4350/graphql`. While optional, it's a useful tool for debugging and on-chain data exploration.
 
 ## Dev flow
 
