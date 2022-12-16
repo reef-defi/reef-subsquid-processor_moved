@@ -1,15 +1,15 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import {Extrinsic} from "./extrinsic.model"
-import {Account} from "./account.model"
+import {Block} from "./block.model"
 
 @Entity_()
-export class Contract {
-    constructor(props?: Partial<Contract>) {
+export class Event {
+    constructor(props?: Partial<Event>) {
         Object.assign(this, props)
     }
 
     /**
-     * Address
+     * 000000..00<blockNum>-000<index>-<shorthash>
      */
     @PrimaryColumn_()
     id!: string
@@ -19,23 +19,25 @@ export class Contract {
     extrinsic!: Extrinsic
 
     @Index_()
-    @ManyToOne_(() => Account, {nullable: true})
-    signer!: Account
-
-    @Column_("text", {nullable: false})
-    bytecode!: string
-
-    @Column_("text", {nullable: false})
-    bytecodeContext!: string
-
-    @Column_("text", {nullable: false})
-    bytecodeArguments!: string
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
     @Column_("int4", {nullable: false})
-    gasLimit!: number
+    index!: number
 
-    @Column_("int4", {nullable: false})
-    storageLimit!: number
+    @Column_("text", {nullable: false})
+    phase!: string
+
+    @Index_()
+    @Column_("text", {nullable: false})
+    section!: string
+
+    @Index_()
+    @Column_("text", {nullable: false})
+    method!: string
+
+    @Column_("jsonb", {nullable: false})
+    data!: unknown
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date

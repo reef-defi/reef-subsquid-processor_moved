@@ -1,5 +1,13 @@
-type Block @entity {
+type ChainInfo @entity {
+  "Name"
   id: ID!
+  count: Int!
+}
+
+type Block @entity {
+  "000000..00<blockNum>-<shorthash>"
+  id: ID!
+  height: Int! @index
   hash: String! @index
   author: String!
   stateRoot: String!
@@ -8,37 +16,69 @@ type Block @entity {
   finalized: Boolean! @index
   timestamp: DateTime!
   processorTimestamp: DateTime
-  accounts: [Account!] @derivedFrom(field: "blockId")
+  extrinsics: [Extrinsic!] @derivedFrom(field: "block")
+  events: [Event!] @derivedFrom(field: "block")
+  accounts: [Account!] @derivedFrom(field: "block")
+}
+
+type Extrinsic @entity {
+  "000000..00<blockNum>-000<index>-<shorthash>"
+  id: ID!
+  block: Block!
+  index: Int!
+  hash: String! @index
+  args: JSON!
+  docs: String!
+  method: String! @index
+  section: String! @index
+  signer: String! @index
+  status: ExtrinsicStatus!
+  errorMessage: String
+  type: ExtrinsicType!
+  signedData: JSON
+  timestamp: DateTime!
+  events: [Event!] @derivedFrom(field: "extrinsic")
+  contracts: [Contract!] @derivedFrom(field: "extrinsic") 
+  # A extrinsic can have only one contract, it is required to use an array for the precompiled contracts, that reference the same virtual extrinsic with id -1.
+}
+
+type Event @entity {
+  "000000..00<blockNum>-000<index>-<shorthash>"
+  id: ID!
+  extrinsic: Extrinsic!
+  block: Block!
+  index: Int!
+  phase: String!
+  section: String! @index
+  method: String! @index
+  data: JSON!
+  timestamp: DateTime!
 }
 
 type Account @entity {
+  "Native address"
   id: ID!
-  address: String! @unique @index
-  evmAddress: String @index 
-  transfersTo: [Transfer!] @derivedFrom(field: "to")
-  transfersFrom: [Transfer!] @derivedFrom(field: "from")
-  tokensHeld: [TokenHolder!] @derivedFrom(field: "signer")
+  evmAddress: String @index
+  block: Block!
+  identity: JSON
+  active: Boolean! @index
+  freeBalance: BigInt!
+  lockedBalance: BigInt!
+  availableBalance: BigInt!
+  reservedBalance: BigInt!
+  vestedBalance: BigInt!
+  votingBalance: BigInt!
+  nonce: Int!
+  evmNonce: Int!
+  timestamp: DateTime!
   contracts: [Contract!] @derivedFrom(field: "signer")
-  blockId: Block! @index
-  # identity: JSON
-  # active: Boolean! @index
-  # freeBalance: BigInt!
-  # lockedBalance: BigInt!
-  # availableBalance: BigInt!
-  # reservedBalance: BigInt!
-  # vestedBalance: BigInt!
-  # votingBalance: BigInt!
-  # nonce: Int!
-  # evmNonce: Int!
-  # timestamp: DateTime!
 }
 
 type Contract @entity {
+  "Address"
   id: ID!
-  address: String! @unique @index
-  extrinsicId: Int @index # TODO FK
-  signer: Account
-  signerAddress: String @index
+  extrinsic: Extrinsic!
+  signer: Account!
   bytecode: String!
   bytecodeContext: String!
   bytecodeArguments: String!
@@ -47,26 +87,151 @@ type Contract @entity {
   timestamp: DateTime!
 }
 
-type Transfer @entity {
-  id: ID!
-  blockId: Int! @index # TODO FK
-  extrinsicId: Int! @index # TODO FK
-  to: Account!
-  from: Account!
-  toAddress: String @index
-  fromAddress: String @index
-  tokenAddress: String @index # TODO FK
-  toEvmAddress: String @index
-  fromEvmAddress: String @index
-  type: TransferType!
-  amount: BigInt! @index
-  feeAmount: BigInt! @index
-  denom: String @index
-  nftId: BigInt @index
-  errorMessage: String
-  success: Boolean! @index
-  timestamp: DateTime!
-  eventId: Int!
+# type EvmEvent @entity {
+#   id: ID! # 000000..00<blockNum>-000<index>-<shorthash>
+#   event: Event! @index # FK?
+#   block: Block! @index # FK?
+#   eventIndex: Int!
+#   extrinsicIndex: Int!
+#   contract: Contract! # FK?
+#   dataRaw: JSON!
+#   dataParsed: JSON!
+#   method: String!
+#   type: EvmEventType!
+#   status: EvmEventStatus!
+#   topic0: String
+#   topic1: String
+#   topic2: String
+#   topic3: String
+# }
+
+# ================ Token transfers ========================
+
+# type Transfer @entity {
+#   id: ID!
+#   block: Block! @index
+#   extrinsicId: String! @index # TODO FK
+#   # to: Account!
+#   # from: Account!
+#   toAddress: String @index
+#   fromAddress: String @index
+#   tokenContract: Contract! @index
+#   tokenAddress: String @index
+#   toEvmAddress: String @index
+#   fromEvmAddress: String @index
+#   type: TransferType!
+#   amount: BigInt! @index
+#   feeAmount: BigInt! @index
+#   denom: String @index
+#   nftId: BigInt @index
+#   errorMessage: String
+#   success: Boolean! @index
+#   timestamp: DateTime!
+# }
+
+# type TokenHolder @entity @index(fields: ["tokenAddress", "signer", "nftId"], unique: true) {
+#   id: ID!
+#   tokenContract: Contract! @index
+#   tokenAddress: String! @unique @index
+#   signer: Account
+#   signerAddress: String @index
+#   evmAddress: String @index
+#   nftId: BigInt
+#   type: TokenHolderType!
+#   balance: BigInt! @index
+#   info: JSON!
+#   timestamp: DateTime!
+# }
+
+# =============== Contract verification ===================
+
+# type NewlyVerifiedContractQueue @entity {
+
+# }
+
+# type VerificationRequest @entity {
+
+# }
+
+# type VerifiedContract @entity {
+
+# }
+
+# ===================== Staking ===========================
+
+# type Staking @entity {
+#   id: ID!
+#   signer: Account
+#   event: Event
+#   type: StakingType! @index
+#   amount: BigInt! 
+#   timestamp: DateTime!
+# }
+
+# ===================== Pools =============================
+
+# type Pool @entity {
+#   id: ID!
+#   address: String! @index
+#   evmEvent: EvmEvent @index
+#   token1: Contract! @index
+#   token2: Contract! @index
+#   poolDecimal: Int!
+#   decimal1: Int!
+#   decimal2: Int!
+# }
+
+# type PoolEvent @entity {
+#   id: ID!
+#   pool: Pool! @index
+#   evmEvent: EvmEvent! @index
+#   toAddress: String @index
+#   senderAddress: String @index
+#   type: PoolType! @index
+#   amount1: BigInt @index
+#   amount2: BigInt @index
+#   amountIn1: BigInt @index
+#   amountIn2: BigInt @index
+#   reserved1: BigInt @index
+#   reserved2: BigInt @index
+#   supply: BigInt @index
+#   totalSupply: BigInt @index
+#   timestamp: DateTime! @index
+# }
+
+# type Candlestick @entity {
+
+# }
+
+# type ReservedRaw @entity {
+
+# }
+
+# type VolumeRaw @entity {
+
+# }
+
+# type TokenPrice @entity {
+
+# }
+
+# ===================== Enums =============================
+
+enum EvmEventType {
+  Verified, 
+  Unverified
+}
+
+enum EvmEventStatus {
+  Success, 
+  Error
+}
+
+enum ContractType {
+  ERC20, 
+  ERC721, 
+  ERC1155,
+  other
 }
 
 enum TransferType {
@@ -76,20 +241,32 @@ enum TransferType {
   ERC1155
 }
 
-type TokenHolder @entity @index(fields: ["tokenAddress", "signer", "nftId"], unique: true) {
-  id: ID!
-  tokenAddress: String! @unique @index # TODO FK
-  signer: Account
-  signerAddress: String @index
-  evmAddress: String @index
-  nftId: BigInt
-  type: TokenHolderType!
-  balance: BigInt! @index
-  info: JSON!
-  timestamp: DateTime!
-}
-
 enum TokenHolderType {
   Account, 
   Contract
+}
+
+enum StakingType {
+  Reward, 
+  Slash
+}
+
+enum PoolType {
+  Mint, 
+  Burn, 
+  Swap, 
+  Sync, 
+  Transfer
+}
+
+enum ExtrinsicStatus {
+  success, 
+  error, 
+  unknown
+}
+
+enum ExtrinsicType {
+  signed, 
+  unsigned, 
+  inherent
 }

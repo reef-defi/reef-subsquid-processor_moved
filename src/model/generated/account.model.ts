@@ -1,6 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, OneToMany as OneToMany_} from "typeorm"
-import {Transfer} from "./transfer.model"
-import {TokenHolder} from "./tokenHolder.model"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_, OneToMany as OneToMany_} from "typeorm"
+import * as marshal from "./marshal"
+import {Block} from "./block.model"
 import {Contract} from "./contract.model"
 
 @Entity_()
@@ -9,25 +9,53 @@ export class Account {
         Object.assign(this, props)
     }
 
+    /**
+     * Native address
+     */
     @PrimaryColumn_()
     id!: string
-
-    @Index_({unique: true})
-    @Column_("text", {nullable: false})
-    address!: string
 
     @Index_()
     @Column_("text", {nullable: true})
     evmAddress!: string | undefined | null
 
-    @OneToMany_(() => Transfer, e => e.to)
-    transfersTo!: Transfer[]
+    @Index_()
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
-    @OneToMany_(() => Transfer, e => e.from)
-    transfersFrom!: Transfer[]
+    @Column_("jsonb", {nullable: true})
+    identity!: unknown | undefined | null
 
-    @OneToMany_(() => TokenHolder, e => e.signer)
-    tokensHeld!: TokenHolder[]
+    @Index_()
+    @Column_("bool", {nullable: false})
+    active!: boolean
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    freeBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    lockedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    availableBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    reservedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    vestedBalance!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    votingBalance!: bigint
+
+    @Column_("int4", {nullable: false})
+    nonce!: number
+
+    @Column_("int4", {nullable: false})
+    evmNonce!: number
+
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 
     @OneToMany_(() => Contract, e => e.signer)
     contracts!: Contract[]

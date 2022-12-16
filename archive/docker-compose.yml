@@ -19,7 +19,7 @@ services:
     command: [
        "-e", "wss://rpc.reefscan.com/ws",
        "-c", "20", # allow up to 20 pending requests for the above endpoint (default is 5)
-       #  "--start-block", "1000000", # uncomment to specify a non-zero start block
+       # "--start-block", "4860900", # uncomment to specify a non-zero start block
        "--out", "postgres://postgres:postgres@db:5432/squid-archive"
     ]
       
