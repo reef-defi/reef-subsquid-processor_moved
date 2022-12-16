@@ -6,16 +6,20 @@ import {
 } from "@subsquid/substrate-processor";
 import { Provider } from '@reef-defi/evm-provider';
 import { WsProvider } from '@polkadot/api';
-import * as erc20 from "./abi/ERC20";
-import * as erc721 from "./abi/ERC721";
-import * as erc1155 from "./abi/ERC1155";
 import { processBlock, saveBlocks } from "./process/block";
-import { Block, Contract, Event } from "./model";
-import { ContractData, EventData, EventRaw, ExtrinsicData } from "./interfaces/interfaces";
+import { Block } from "./model";
+import { ContractData, EventData, EventRaw, EvmEventData, ExtrinsicData, TransferData } from "./interfaces/interfaces";
 import { AccountManager } from "./accountManager";
 import { processExtrinsic, saveExtrinsics } from "./process/extrinsic";
 import { processEvent, saveEvents } from "./process/event";
-import { processContractCreated } from "./process/contractCreated";
+import { processContractCreated, saveContracts } from "./process/contractCreated";
+import { processClaimEvmAccount } from "./process/claimEvmAccount";
+import { processEndowed } from "./process/endowed";
+import { processReserved } from "./process/reserved";
+import { processNativeTransfer } from "./process/nativeTransfer";
+import { processStaking } from "./process/staking";
+import { processKillAccount } from "./process/killAccount";
+import { processEvmEvent, saveEvmEvents } from "./process/evmLogEvent";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -36,17 +40,15 @@ const processor = new SubstrateBatchProcessor()
 export type Item = BatchProcessorItem<typeof processor>;
 export type Context = BatchContext<Store, Item>;
 
-// let transfersData: TransferData[] = [];
-// let evmEventsData: EvmEventData[] = [];
-
 processor.run(database, async (ctx) => {
   await provider.api.isReadyOrError;
 
   const blocks: Map<string, Block> = new Map();
   const extrinsicsData: Map<string, ExtrinsicData> = new Map();
-  const eventsData: Map<string, EventData> = new Map();
-  const contractsData: Map<string, ContractData> = new Map();
-
+  const eventsData: EventData[] = [];
+  const contractsData: ContractData[] = [];
+  const evmEventsData: EvmEventData[] = [];
+  const transfersData: TransferData[] = [];
   const accountManager = new AccountManager();
 
   for (const block of ctx.blocks) {
@@ -60,42 +62,45 @@ processor.run(database, async (ctx) => {
           extrinsicsData.set(eventRaw.extrinsic.id, processExtrinsic(eventRaw.extrinsic, block.header));
         }
 
-        eventsData.set(eventRaw.id, (processEvent(eventRaw, block.header)));
+        eventsData.push(processEvent(eventRaw, block.header));
 
         switch (item.name as string) {
           case 'EVM.Log': 
-            // await selectEvmLogEvent(eventRaw as EvmLog, block.header);
+            const {evmEventData, transfersData: td} = await processEvmEvent(eventRaw, block.header);
+            if (evmEventData) evmEventsData.push(evmEventData);
+            transfersData.concat(td);
             break;
           case 'EVM.Created':
             const contractData = processContractCreated(eventRaw, block.header);
-            contractsData.set(contractData.id, contractData);
+            contractsData.push(contractData);
             break;
           case 'EVM.ExecutedFailed': 
-            console.log('Evm.ExecutedFailed');
+          const {evmEventData: evmEventDataFailed } = await processEvmEvent(eventRaw, block.header);
+          evmEventsData.push(evmEventDataFailed!);
             break;
       
           case 'EvmAccounts.ClaimAccount':
-            // await processClaimEvmAccount(eventRaw, block.header, accountManager);
+            await processClaimEvmAccount(eventRaw, block.header, accountManager);
             break;
       
           case 'Balances.Endowed': 
-            // await processEndowed(eventRaw, block.header, accountManager);
+            await processEndowed(eventRaw, block.header, accountManager);
             break;
           case 'Balances.Reserved': 
-            // const accountReserved = await processReserved(eventRaw, block.header, accountManager);
+            await processReserved(eventRaw, block.header, accountManager);
             break;
           case 'Balances.Transfer': 
-            // const transfer = await processNativeTransfer(eventRaw, block.header, accountManager);
+            const transfer = await processNativeTransfer(eventRaw, block.header, accountManager);
             // TODO save transfer entity
             break;
       
           case 'Staking.Rewarded': 
-            // const staking = await processStaking(eventRaw, block.header, accountManager);
+            const staking = await processStaking(eventRaw, block.header, accountManager);
             // TODO save staking entity
             break;
       
           case 'System.KilledAccount': 
-            // await processKillAccount(eventRaw, block.header, accountManager);
+            await processKillAccount(eventRaw, block.header, accountManager);
             break;
         }
       }
@@ -106,104 +111,8 @@ processor.run(database, async (ctx) => {
 
   await saveBlocks([...blocks.values()], ctx.store);
   const extrinsics = await saveExtrinsics([...extrinsicsData.values()], blocks, ctx.store);
-  const events = await saveEvents([...eventsData.values()], blocks, extrinsics, ctx.store);
-  await accountManager.save(blocks, ctx.store);
-  
-  // await ctx.store.insert(contracts);
-
-  // await ctx.store.save([...accountManager.accounts.values()]);
-
-  // // Save contracts
-  // const accountIds: Set<string> = new Set();
-  // for (const contractData of contractsData) {
-  //   accountIds.add(contractData.signerAddress);
-  // }
-  // const accountsFound = await ctx.store.findBy(Account, {id: In([...accountIds])}).then((q) => new Map(q.map((i) => [i.id, i])));
-
-  // const contracts: Contract[] = contractsData.map((contractData) => {
-  //   let signer = accountsFound.get(contractData.signerAddress);
-  //   if (!signer) {
-  //     signer = new Account({id: contractData.signerAddress})
-  //     accountsFound.set(signer.id, signer)
-  //   }
-
-  //   return new Contract({
-  //     ...contractData,
-  //     signer,
-  //     extrinsicId: 0, // TODO - get extrinsicId
-  //   });
-  // });
-  // await ctx.store.save([...accountsFound.values()]);
-  // await ctx.store.insert(contracts);
-
-  // // Save transfers
-  // const contractIds: Set<string> = new Set();
-  // for (const transferData of transfersData) {
-  //   contractIds.add(transferData.tokenAddress);
-  // }
-  // for (const evmEventData of evmEventsData) {
-  //   contractIds.add(evmEventData.contractAddress);
-  // }
-  // const contractsFound = await ctx.store.findBy(Contract, {id: In([...contractIds])}).then((q) => new Map(q.map((i) => [i.id, i])))
-
-  // const transfers: Transfer[] = transfersData.map((transferData) => {
-  //   const _block = blocks.find((block) => block.id === transferData.blockId);
-  //   if (!_block) throw new Error(`Block ${transferData.blockId} not found`); // TODO - handle this error
-
-  //   let tokenContract = contractsFound.get(transferData.tokenAddress);
-  //   if (!tokenContract) throw new Error(`Contract ${transferData.tokenAddress} notfound`); // TODO - handle this error
-
-  //   return new Transfer({
-  //     ...transferData,
-  //     block: _block,
-  //     tokenContract,
-  //     // to,
-  //     // from,
-  //     feeAmount: 0n, // TODO - get fee amount from extrinsicData
-  //     denom: "TODO", // TODO: get symbol from contract
-  //   });
-  // });
-
-  // // Save evm events
-  // const evmEvents: EvmEvent[] = evmEventsData.map((evmEventData) => {
-  //   const _block = blocks.find((block) => block.id === evmEventData.blockId);
-  //   if (!_block) throw new Error('Block not found'); // TODO - handle this error
-
-  //   let contract = contractsFound.get(evmEventData.contractAddress);
-  //   if (!contract) throw new Error(`Contract ${evmEventData.contractAddress} not found`); // TODO - handle this error
-
-  //   return new EvmEvent({
-  //     ...evmEventData,
-  //     block: _block,
-  //     extrinsicIndex: 0, // TODO - get extrinsic index from extrinsicData
-  //     contract,
-  //   });
-  // });
-  
-  // await ctx.store.insert(transfers);
-  // await ctx.store.insert(evmEvents);
-
-  // transfersData = [];
-  // evmEventsData = [];
+  const events = await saveEvents(eventsData, blocks, extrinsics, ctx.store);
+  const accounts = await accountManager.save(blocks, ctx.store);
+  await saveContracts(contractsData, accounts, extrinsics, ctx.store);
+  await saveEvmEvents(evmEventsData, blocks, events, ctx.store);
 });
-
-// const selectEvmLogEvent = async (event: EvmLog, blockHeader: SubstrateBlock) => {
-//   switch (event.args.topics[0]) {
-//     case erc20.events.Transfer.topic: 
-//       const erc20TransferData = await processErc20Transfer(event, blockHeader);
-//       if (erc20TransferData) transfersData.push(erc20TransferData);
-//       break;
-//     case erc721.events.Transfer.topic:
-//       transfersData.push(await processErc721Transfer(event, blockHeader));
-//       break;
-//     case erc1155.events.TransferSingle.topic: 
-//       transfersData.push(await processErc1155SingleTransfer(event, blockHeader));
-//       break;
-//     case erc1155.events.TransferBatch.topic:
-//       transfersData.push(...await processErc1155BatchTransfer(event, blockHeader));
-//       break;
-//     default:
-//      const evmEventData = await processEvmLog(event, blockHeader);
-//      if (evmEventData) evmEventsData.push(evmEventData);
-//   }
-// };

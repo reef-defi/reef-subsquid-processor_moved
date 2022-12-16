@@ -87,54 +87,51 @@ type Contract @entity {
   timestamp: DateTime!
 }
 
-# type EvmEvent @entity {
-#   id: ID! # 000000..00<blockNum>-000<index>-<shorthash>
-#   event: Event! @index # FK?
-#   block: Block! @index # FK?
-#   eventIndex: Int!
-#   extrinsicIndex: Int!
-#   contract: Contract! # FK?
-#   dataRaw: JSON!
-#   dataParsed: JSON!
-#   method: String!
-#   type: EvmEventType!
-#   status: EvmEventStatus!
-#   topic0: String
-#   topic1: String
-#   topic2: String
-#   topic3: String
-# }
+type EvmEvent @entity {
+  "000000..00<blockNum>-000<index>-<shorthash>"
+  id: ID!
+  event: Event!
+  block: Block!
+  eventIndex: Int!
+  extrinsicIndex: Int!
+  contractAddress: String! @index
+  dataRaw: JSON!
+  dataParsed: JSON!
+  method: String! @index
+  type: EvmEventType! @index
+  status: EvmEventStatus! @index
+  topic0: String @index
+  topic1: String @index
+  topic2: String @index
+  topic3: String @index
+}
 
 # ================ Token transfers ========================
 
-# type Transfer @entity {
-#   id: ID!
-#   block: Block! @index
-#   extrinsicId: String! @index # TODO FK
-#   # to: Account!
-#   # from: Account!
-#   toAddress: String @index
-#   fromAddress: String @index
-#   tokenContract: Contract! @index
-#   tokenAddress: String @index
-#   toEvmAddress: String @index
-#   fromEvmAddress: String @index
-#   type: TransferType!
-#   amount: BigInt! @index
-#   feeAmount: BigInt! @index
-#   denom: String @index
-#   nftId: BigInt @index
-#   errorMessage: String
-#   success: Boolean! @index
-#   timestamp: DateTime!
-# }
+type Transfer @entity {
+  id: ID!
+  block: Block!
+  extrinsic: Extrinsic!
+  to: Account!
+  from: Account!
+  token: Contract!
+  toEvmAddress: String @index
+  fromEvmAddress: String @index
+  type: TransferType!
+  amount: BigInt! @index
+  feeAmount: BigInt! @index
+  denom: String @index
+  nftId: BigInt @index
+  errorMessage: String
+  success: Boolean! @index
+  timestamp: DateTime!
+}
 
-# type TokenHolder @entity @index(fields: ["tokenAddress", "signer", "nftId"], unique: true) {
+# type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: true) {
+#   "<tokenAddress>-<signerAddress>-<nftId>"
 #   id: ID!
-#   tokenContract: Contract! @index
-#   tokenAddress: String! @unique @index
+#   token: Contract!
 #   signer: Account
-#   signerAddress: String @index
 #   evmAddress: String @index
 #   nftId: BigInt
 #   type: TokenHolderType!
