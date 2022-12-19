@@ -8,16 +8,19 @@ import { toChecksumAddress } from "./util";
 export class AccountManager {  
     accountsData: Map<string, AccountData> = new Map();
   
-    async process(address: string, blockHeader: SubstrateBlock, active = true): Promise<void> {
+    async process(address: string, blockHeader: SubstrateBlock, active = true): Promise<AccountData> {
         let accountData = this.accountsData.get(address);
         
         // If account does not exist or block height is lower than current, we extract its data and store it
         if (!accountData || accountData.blockHeight < blockHeader.height) {
-            this.accountsData.set(address, await this.getAccountData(address, blockHeader, active));
+            accountData = await this.getAccountData(address, blockHeader, active);
+            this.accountsData.set(address, accountData);
         } else if (!active) { // If account already exists and is killed, we update the active flag
             accountData.active = false;
             this.accountsData.set(address, accountData);
         }
+
+        return accountData;
     }
   
     // async useEvm(evmAddress: string, blockHeight: number, timestamp: Date, ): Promise<string> {

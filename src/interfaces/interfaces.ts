@@ -92,6 +92,7 @@ export interface TransferData {
     timestamp: Date;
     nftId: bigint | undefined | null;
     errorMessage: string | undefined | null;
+    feeAmount: bigint | undefined;
 };
   
 export interface ExtrinsicRaw {

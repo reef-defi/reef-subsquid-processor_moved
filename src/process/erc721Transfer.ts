@@ -21,7 +21,8 @@ export const processErc721Transfer = async (eventRaw: EventRaw, blockHeader: Sub
         success: true,
         timestamp: new Date(blockHeader.timestamp),
         nftId: BigInt(tokenId.toString()),
-        errorMessage: undefined,
+        errorMessage: '',
+        feeAmount: undefined, // TODO
     };
 
     return transferData;

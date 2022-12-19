@@ -29,7 +29,7 @@ export const provider = new Provider({
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange( {from: 0} )
+  .setBlockRange( {from: 283070} )
   .setDataSource({
     chain: RPC_URL,
     archive: 'http://localhost:8888/graphql'

@@ -24,7 +24,8 @@ export const processErc20Transfer = async (eventRaw: EventRaw, blockHeader: Subs
         success: true,
         timestamp: new Date(blockHeader.timestamp),
         nftId: null,
-        errorMessage: undefined,
+        errorMessage: '',
+        feeAmount: undefined, // TODO
     };
 
     return transferData;

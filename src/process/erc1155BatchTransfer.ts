@@ -25,7 +25,8 @@ export const processErc1155BatchTransfer = async (eventRaw: EventRaw, blockHeade
             success: true,
             timestamp: new Date(blockHeader.timestamp),
             nftId: BigInt(ids[i].toString()),
-            errorMessage: undefined,
+            errorMessage: '',
+            feeAmount: undefined, // TODO
         });
     }
 
