@@ -127,18 +127,18 @@ type Transfer @entity {
   timestamp: DateTime!
 }
 
-# type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: true) {
-#   "<tokenAddress>-<signerAddress>-<nftId>"
-#   id: ID!
-#   token: Contract!
-#   signer: Account
-#   evmAddress: String @index
-#   nftId: BigInt
-#   type: TokenHolderType!
-#   balance: BigInt! @index
-#   info: JSON!
-#   timestamp: DateTime!
-# }
+type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: true) {
+  "<tokenAddress>-<signerAddress>-<nftId>"
+  id: ID!
+  token: Contract!
+  signer: Account
+  evmAddress: String @index
+  nftId: BigInt
+  type: TokenHolderType!
+  balance: BigInt! @index
+  info: JSON!
+  timestamp: DateTime!
+}
 
 # =============== Contract verification ===================
 
@@ -156,14 +156,14 @@ type Transfer @entity {
 
 # ===================== Staking ===========================
 
-# type Staking @entity {
-#   id: ID!
-#   signer: Account
-#   event: Event
-#   type: StakingType! @index
-#   amount: BigInt! 
-#   timestamp: DateTime!
-# }
+type Staking @entity {
+  id: ID!
+  signer: Account
+  event: Event
+  type: StakingType! @index
+  amount: BigInt! 
+  timestamp: DateTime!
+}
 
 # ===================== Pools =============================
 

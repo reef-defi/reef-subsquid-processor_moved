@@ -1,5 +1,5 @@
 import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@subsquid/substrate-processor"
-import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, TransferType } from "../model"
+import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, StakingType, TokenHolderType, TransferType } from "../model"
 export interface ExtrinsicData {
     id: string,
     blockId: string,
@@ -94,6 +94,26 @@ export interface TransferData {
     errorMessage: string | undefined | null;
     feeAmount: bigint | undefined;
 };
+
+export interface TokenHolderData {
+    id: string;
+    tokenAddress: string;
+    signerAddress: string | null;
+    evmAddress: string | null;
+    nftId: bigint | null;
+    type: TokenHolderType;
+    balance: bigint;
+    info: any;
+    timestamp: Date;
+}
+
+export interface StakingData {
+    id: string;
+    signerAddress: string;
+    type: StakingType;
+    amount: bigint;
+    timestamp: Date;
+}
   
 export interface ExtrinsicRaw {
     id: string
@@ -133,3 +153,13 @@ export interface CallOrigin {
     value: {__kind: string} & any
 }
   
+
+export interface ERC721Data {
+    name: string;
+    symbol: string;
+  }
+  export interface ERC20Data extends ERC721Data {
+    decimals: number;
+  }
+  
+  export type TokenType = 'ERC20' | 'ERC721' | 'ERC1155';

@@ -2,7 +2,6 @@ import { ContractData, EventRaw } from "../interfaces/interfaces";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { hexToNativeAddress, toChecksumAddress } from "../util";
 import { Account, Contract, Extrinsic } from "../model";
-import { Equal } from "typeorm";
 import { Store } from "@subsquid/typeorm-store";
 
 export const processContractCreated = (eventRaw: EventRaw, blockHeader: SubstrateBlock): ContractData => {
@@ -25,7 +24,7 @@ export const processContractCreated = (eventRaw: EventRaw, blockHeader: Substrat
 }
 
 export const saveContracts = async (contractsData: ContractData[], accounts: Map<string, Account>, extrinsics: Map<string, Extrinsic>, store: Store): Promise<void> => {
-    const contracts: Map<string, Contract> = new Map();
+    const contracts: Contract[] = [];
 
     // TODO: process in parallel
     for (const contractData of contractsData) {
@@ -40,14 +39,14 @@ export const saveContracts = async (contractsData: ContractData[], accounts: Map
         const extrinsic = extrinsics.get(contractData.extrinsicId);
         if (!extrinsic) throw new Error(`Extrinsic ${contractData.extrinsicId} not found`); // TODO: handle this error
         
-        contracts.set(contractData.id, new Contract ({
+        contracts.push(new Contract ({
             ...contractData,
             signer: signer,
             extrinsic: extrinsic
         }));
     };
 
-    await store.insert([...contracts.values()]);
+    await store.insert(contracts);
 }
 
 const preprocessBytecode = (bytecode: string) => {

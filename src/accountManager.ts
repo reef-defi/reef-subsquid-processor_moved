@@ -23,28 +23,6 @@ export class AccountManager {
         return accountData;
     }
   
-    // async useEvm(evmAddress: string, blockHeight: number, timestamp: Date, ): Promise<string> {
-    //   // If for some reason evmAddress is not valid, return address: 0x
-    //   if (!ethers.utils.isAddress(evmAddress)) {
-    //     return '0x';
-    //   }
-  
-    //   // Node/Empty/Root address is presented as 0x
-    //   if (evmAddress === ethers.constants.AddressZero) {
-    //     return '0x';
-    //   }
-    //   const address = await findNativeAddress(evmAddress);
-  
-    //   // Address can also be of contract and for this case node returns empty string
-    //   // We are only processing accounts in accounts manager!
-    //   if (address !== '') {
-    //     await this.use(address, blockHeight, timestamp);
-    //     return address;
-    //   }
-  
-    //   return '0x';
-    // }
-  
     async save(blocks: Map<string, Block>, store: Store): Promise<Map<string, Account>> {
         const accounts: Map<string, Account> = new Map();
 

@@ -8,7 +8,7 @@ import { Provider } from '@reef-defi/evm-provider';
 import { WsProvider } from '@polkadot/api';
 import { processBlock, saveBlocks } from "./process/block";
 import { Block } from "./model";
-import { ContractData, EventData, EventRaw, EvmEventData, ExtrinsicData, TransferData } from "./interfaces/interfaces";
+import { ContractData, EventData, EventRaw, EvmEventData, ExtrinsicData, StakingData, TokenHolderData, TransferData } from "./interfaces/interfaces";
 import { AccountManager } from "./accountManager";
 import { processExtrinsic, saveExtrinsics } from "./process/extrinsic";
 import { processEvent, saveEvents } from "./process/event";
@@ -17,9 +17,11 @@ import { processClaimEvmAccount } from "./process/claimEvmAccount";
 import { processEndowed } from "./process/endowed";
 import { processReserved } from "./process/reserved";
 import { processNativeTransfer } from "./process/nativeTransfer";
-import { processStaking } from "./process/staking";
+import { processStaking, saveStakings } from "./process/staking";
 import { processKillAccount } from "./process/killAccount";
 import { processEvmEvent, saveEvmEvents } from "./process/evmLogEvent";
+import { saveTransfers } from "./process/transfer";
+import { saveTokenHolders } from "./process/tokenHolder";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -29,7 +31,7 @@ export const provider = new Provider({
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange( {from: 283070} )
+  .setBlockRange( {from: 0} )
   .setDataSource({
     chain: RPC_URL,
     archive: 'http://localhost:8888/graphql'
@@ -49,6 +51,8 @@ processor.run(database, async (ctx) => {
   const contractsData: ContractData[] = [];
   const evmEventsData: EvmEventData[] = [];
   const transfersData: TransferData[] = [];
+  const tokenHoldersData: TokenHolderData[] = [];
+  const stakingsData: StakingData[] = [];
   const accountManager = new AccountManager();
 
   for (const block of ctx.blocks) {
@@ -66,7 +70,7 @@ processor.run(database, async (ctx) => {
 
         switch (item.name as string) {
           case 'EVM.Log': 
-            const {evmEventData, transfersData: td} = await processEvmEvent(eventRaw, block.header);
+            const {evmEventData, transfersData: td} = await processEvmEvent(eventRaw, block.header, accountManager);
             if (evmEventData) evmEventsData.push(evmEventData);
             transfersData.concat(td);
             break;
@@ -75,7 +79,7 @@ processor.run(database, async (ctx) => {
             contractsData.push(contractData);
             break;
           case 'EVM.ExecutedFailed': 
-          const {evmEventData: evmEventDataFailed } = await processEvmEvent(eventRaw, block.header);
+          const {evmEventData: evmEventDataFailed } = await processEvmEvent(eventRaw, block.header, accountManager);
           evmEventsData.push(evmEventDataFailed!);
             break;
       
@@ -90,13 +94,13 @@ processor.run(database, async (ctx) => {
             await processReserved(eventRaw, block.header, accountManager);
             break;
           case 'Balances.Transfer': 
-            const transfer = await processNativeTransfer(eventRaw, block.header, accountManager);
-            // TODO save transfer entity
+            const nativeTransfer = await processNativeTransfer(eventRaw, block.header, accountManager);
+            transfersData.push(nativeTransfer);
             break;
       
           case 'Staking.Rewarded': 
             const staking = await processStaking(eventRaw, block.header, accountManager);
-            // TODO save staking entity
+            stakingsData.push(staking);
             break;
       
           case 'System.KilledAccount': 
@@ -115,4 +119,7 @@ processor.run(database, async (ctx) => {
   const accounts = await accountManager.save(blocks, ctx.store);
   await saveContracts(contractsData, accounts, extrinsics, ctx.store);
   await saveEvmEvents(evmEventsData, blocks, events, ctx.store);
+  await saveTransfers(transfersData, blocks, extrinsics, accounts, ctx.store);
+  await saveTokenHolders(tokenHoldersData, accounts, ctx.store);
+  await saveStakings(stakingsData, accounts, events, ctx.store);
 });

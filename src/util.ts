@@ -1,8 +1,14 @@
 import * as ss58 from "@subsquid/ss58"
 import { ethers } from "ethers";
+import { ERC20Data } from "./interfaces/interfaces";
 import { provider } from "./processor";
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
+export const REEF_DEFAULT_DATA: ERC20Data = {
+    decimals: 18,
+    symbol: 'REEF',
+    name: 'Reef',
+};
 
 export const hexToNativeAddress = (address: string | undefined): string => {
     if (!address) return '';
