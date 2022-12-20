@@ -41,4 +41,4 @@ export const toCamelCase = (input: string): string => {
     }
 
     return result[0].toLowerCase() + result.substring(1);
-  }
+}
