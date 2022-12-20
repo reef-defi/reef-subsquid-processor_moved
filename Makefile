@@ -7,7 +7,7 @@ build:
 
 
 serve:
-	@npx squid-graphql-server
+	@npx squid-graphql-server --subscriptions
 
 
 migrate:
@@ -35,11 +35,11 @@ archive-down:
 
 
 up:
-	@docker-compose up -d
+	@docker compose up -d
 
 
 down:
-	@docker-compose down
+	@docker compose down
 
 
 .PHONY: build serve process migrate codegen typegen up down
