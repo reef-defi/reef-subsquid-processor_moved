@@ -142,17 +142,42 @@ type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: tr
 
 # =============== Contract verification ===================
 
-# type NewlyVerifiedContractQueue @entity {
+type NewlyVerifiedContractQueue @entity {
+  id: ID!
+}
 
-# }
+type VerificationRequest @entity {
+  "Address"
+  id: ID!
+  name: String! @index
+  filename: String @index
+  source: JSON!
+  optimization: Boolean!
+  compilerVersion: String!
+  args: JSON!
+  runs: Int!
+  target: String!
+  success: Boolean! @index
+  message: String
+  timestamp: DateTime
+}
 
-# type VerificationRequest @entity {
-
-# }
-
-# type VerifiedContract @entity {
-
-# }
+type VerifiedContract @entity {
+  "Address"
+  id: ID!
+  name: String! @index
+  filename: String @index
+  source: JSON!
+  optimization: Boolean!
+  compilerVersion: String!
+  compiledData: JSON!
+  args: JSON!
+  runs: Int!
+  target: String!
+  type: ContractType @index
+  contractData: JSON
+  timestamp: DateTime
+}
 
 # ===================== Staking ===========================
 

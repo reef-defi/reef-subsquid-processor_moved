@@ -6,28 +6,21 @@ import {
 } from "@subsquid/substrate-processor";
 import { Provider } from '@reef-defi/evm-provider';
 import { WsProvider } from '@polkadot/api';
-import { processBlock, saveBlocks } from "./process/block";
-import { Block } from "./model";
-import { ContractData, EventData, EventRaw, EvmEventData, ExtrinsicData, StakingData, TokenHolderData, TransferData } from "./interfaces/interfaces";
-import { AccountManager } from "./accountManager";
-import { processExtrinsic, saveExtrinsics } from "./process/extrinsic";
-import { processEvent, saveEvents } from "./process/event";
-import { processContractCreated, saveContracts } from "./process/contractCreated";
-import { processClaimEvmAccount } from "./process/claimEvmAccount";
-import { processEndowed } from "./process/endowed";
-import { processReserved } from "./process/reserved";
-import { processNativeTransfer } from "./process/nativeTransfer";
-import { processStaking, saveStakings } from "./process/staking";
-import { processKillAccount } from "./process/killAccount";
-import { processEvmEvent, saveEvmEvents } from "./process/evmLogEvent";
-import { saveTransfers } from "./process/transfer";
-import { saveTokenHolders } from "./process/tokenHolder";
+import { EventRaw } from "./interfaces/interfaces";
+import { AccountManager } from "./process/accountManager";
+import { BlockManager } from "./process/blockManager";
+import { ExtrinsicManager } from "./process/extrinsicManager";
+import { EventManager } from "./process/eventManager";
+import { ContractManager } from "./process/contractManager";
+import { EvmEventManager } from "./process/evmEventManager";
+import { TransferManager } from "./process/transferManager";
+import { TokenHolderManager } from "./process/tokenHolderManager";
+import { StakingManager } from "./process/stakingManager";
+import { hexToNativeAddress } from "./util";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
-export const provider = new Provider({
-  provider: new WsProvider(RPC_URL),
-});
+export const provider = new Provider({ provider: new WsProvider(RPC_URL) });
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
@@ -45,66 +38,61 @@ export type Context = BatchContext<Store, Item>;
 processor.run(database, async (ctx) => {
   await provider.api.isReadyOrError;
 
-  const blocks: Map<string, Block> = new Map();
-  const extrinsicsData: Map<string, ExtrinsicData> = new Map();
-  const eventsData: EventData[] = [];
-  const contractsData: ContractData[] = [];
-  const evmEventsData: EvmEventData[] = [];
-  const transfersData: TransferData[] = [];
-  const tokenHoldersData: TokenHolderData[] = [];
-  const stakingsData: StakingData[] = [];
-  const accountManager = new AccountManager();
+  const blockManager: BlockManager = new BlockManager();
+  const extrinsicManager: ExtrinsicManager = new ExtrinsicManager();
+  const eventManager: EventManager = new EventManager();
+  const contractManager: ContractManager = new ContractManager();
+  const evmEventManager: EvmEventManager = new EvmEventManager();
+  const transferManager: TransferManager = new TransferManager();
+  const tokenHolderManager: TokenHolderManager = new TokenHolderManager();
+  const stakingManager: StakingManager = new StakingManager();
+  const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
-    blocks.set(block.header.id, processBlock(block.header));
+    blockManager.process(block.header);
 
     for (const item of block.items) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
         
-        if (!extrinsicsData.has(eventRaw.extrinsic.id)) {
-          extrinsicsData.set(eventRaw.extrinsic.id, processExtrinsic(eventRaw.extrinsic, block.header));
-        }
-
-        eventsData.push(processEvent(eventRaw, block.header));
+        extrinsicManager.process(eventRaw.extrinsic, block.header);
+        eventManager.process(eventRaw, block.header);
 
         switch (item.name as string) {
           case 'EVM.Log': 
-            const {evmEventData, transfersData: td} = await processEvmEvent(eventRaw, block.header, accountManager);
-            if (evmEventData) evmEventsData.push(evmEventData);
-            transfersData.concat(td);
+            await evmEventManager.process(eventRaw, block.header, transferManager, accountManager, ctx.store);
             break;
           case 'EVM.Created':
-            const contractData = processContractCreated(eventRaw, block.header);
-            contractsData.push(contractData);
+            contractManager.process(eventRaw, block.header);
             break;
           case 'EVM.ExecutedFailed': 
-          const {evmEventData: evmEventDataFailed } = await processEvmEvent(eventRaw, block.header, accountManager);
-          evmEventsData.push(evmEventDataFailed!);
+            await evmEventManager.process(eventRaw, block.header, transferManager, accountManager);
             break;
       
           case 'EvmAccounts.ClaimAccount':
-            await processClaimEvmAccount(eventRaw, block.header, accountManager);
+            const addressClaimer = hexToNativeAddress(eventRaw.args[0]);
+            await accountManager.process(addressClaimer, block.header);
             break;
       
           case 'Balances.Endowed': 
-            await processEndowed(eventRaw, block.header, accountManager);
+            const addressEndowed = hexToNativeAddress(eventRaw.args[0]);
+            await accountManager.process(addressEndowed, block.header);
             break;
           case 'Balances.Reserved': 
-            await processReserved(eventRaw, block.header, accountManager);
+            const addressReserved = hexToNativeAddress(eventRaw.args[0]);
+            await accountManager.process(addressReserved, block.header);
             break;
           case 'Balances.Transfer': 
-            const nativeTransfer = await processNativeTransfer(eventRaw, block.header, accountManager);
-            transfersData.push(nativeTransfer);
+            await transferManager.process(eventRaw, block.header, accountManager, true);
             break;
       
           case 'Staking.Rewarded': 
-            const staking = await processStaking(eventRaw, block.header, accountManager);
-            stakingsData.push(staking);
+            await stakingManager.process(eventRaw, block.header, accountManager);
             break;
       
           case 'System.KilledAccount': 
-            await processKillAccount(eventRaw, block.header, accountManager);
+            const address = hexToNativeAddress(eventRaw.args);
+            await accountManager.process(address, block.header, false);
             break;
         }
       }
@@ -113,13 +101,13 @@ processor.run(database, async (ctx) => {
 
   console.log(`Saving blocks from ${ctx.blocks[0].header.height} to ${ctx.blocks[ctx.blocks.length - 1].header.height}`);
 
-  await saveBlocks([...blocks.values()], ctx.store);
-  const extrinsics = await saveExtrinsics([...extrinsicsData.values()], blocks, ctx.store);
-  const events = await saveEvents(eventsData, blocks, extrinsics, ctx.store);
+  const blocks = await blockManager.save(ctx.store);
+  const extrinsics = await extrinsicManager.save(blocks, ctx.store);
+  const events = await eventManager.save(blocks, extrinsics, ctx.store);
   const accounts = await accountManager.save(blocks, ctx.store);
-  await saveContracts(contractsData, accounts, extrinsics, ctx.store);
-  await saveEvmEvents(evmEventsData, blocks, events, ctx.store);
-  await saveTransfers(transfersData, blocks, extrinsics, accounts, ctx.store);
-  await saveTokenHolders(tokenHoldersData, accounts, ctx.store);
-  await saveStakings(stakingsData, accounts, events, ctx.store);
+  await contractManager.save(accounts, extrinsics, ctx.store);
+  await evmEventManager.save(blocks, events, ctx.store);
+  await transferManager.save(blocks, extrinsics, accounts, ctx.store);
+  await tokenHolderManager.save(accounts, ctx.store);
+  await stakingManager.save(accounts, events, ctx.store);
 });

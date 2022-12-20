@@ -92,7 +92,7 @@ export interface TransferData {
     timestamp: Date;
     nftId: bigint | undefined | null;
     errorMessage: string | undefined | null;
-    feeAmount: bigint | undefined;
+    feeAmount: bigint;
 };
 
 export interface TokenHolderData {

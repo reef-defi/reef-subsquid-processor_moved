@@ -1,8 +1,8 @@
-import { EventRaw, TransferData } from "../interfaces/interfaces";
-import { TransferType } from "../model";
-import * as erc1155 from "../abi/ERC1155";
+import { EventRaw, TransferData } from "../../interfaces/interfaces";
+import { TransferType } from "../../model";
+import * as erc1155 from "../../abi/ERC1155";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { findNativeAddress, toChecksumAddress } from "../util";
+import { findNativeAddress, toChecksumAddress } from "../../util";
 
 export const processErc1155BatchTransfer = async (eventRaw: EventRaw, blockHeader: SubstrateBlock): Promise<TransferData[]> => {    
     const transfersData: TransferData[] = [];
@@ -26,7 +26,7 @@ export const processErc1155BatchTransfer = async (eventRaw: EventRaw, blockHeade
             timestamp: new Date(blockHeader.timestamp),
             nftId: BigInt(ids[i].toString()),
             errorMessage: '',
-            feeAmount: undefined, // TODO
+            feeAmount: 0n, // TODO
         });
     }
 
