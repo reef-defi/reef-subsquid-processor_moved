@@ -17,6 +17,7 @@ import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
 import { hexToNativeAddress } from "./util";
+import { lookupArchive } from "@subsquid/archive-registry";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
@@ -24,10 +25,11 @@ export const provider = new Provider({ provider: new WsProvider(RPC_URL) });
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange( {from: 0} )
+  .setBlockRange( {from: 0, to: 254532} )
   .setDataSource({
     chain: RPC_URL,
-    archive: 'http://localhost:8888/graphql'
+    archive: "http://localhost:8888/graphql", // Use local archive API
+    // archive: lookupArchive('reef', {release: "FireSquid"}) // Use Aquarium archive API
   })
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)

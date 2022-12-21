@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import { AccountData } from "../interfaces/interfaces";
-import { Account, Block, TokenHolder, TokenHolderType } from "../model";
+import { Account, Block, TokenHolderType } from "../model";
 import { provider } from "../processor";
 import { REEF_CONTRACT_ADDRESS, REEF_DEFAULT_DATA, toChecksumAddress } from "../util";
 import { TokenHolderManager } from "./tokenHolderManager";
@@ -27,7 +27,7 @@ export class AccountManager {
                     id: `${REEF_CONTRACT_ADDRESS}-${address}`,
                     tokenAddress: REEF_CONTRACT_ADDRESS,
                     signerAddress: address,
-                    evmAddress: '',
+                    evmAddress: null,
                     nftId: null,
                     type: TokenHolderType.Account,
                     balance: accountData.freeBalance,
