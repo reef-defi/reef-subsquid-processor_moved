@@ -2,6 +2,117 @@ module.exports = class Data1671527709481 {
     name = 'Data1671527709481'
 
     async up(db) {
+        // Create functions
+        await db.query(`
+            CREATE FUNCTION public.account_count() RETURNS trigger
+                    LANGUAGE plpgsql
+                    AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'accounts';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'accounts';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'accounts';
+                RETURN NULL;
+                END IF;
+            END;$$;
+            CREATE FUNCTION public.block_count() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'blocks';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'blocks';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'blocks';
+                RETURN NULL;
+                END IF;
+            END;$$;
+            CREATE FUNCTION public.contract_count() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'contracts';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'contracts';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'contracts';
+                RETURN NULL;
+                END IF;
+            END;$$;
+            CREATE FUNCTION public.event_count() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'events';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'events';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'events';
+                RETURN NULL;
+                END IF;
+            END;$$;
+            CREATE FUNCTION public.extrinsic_count() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'extrinsics';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'extrinsics';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'extrinsics';
+                RETURN NULL;
+                END IF;
+            END;$$;
+            CREATE FUNCTION public.new_verified_contract_found() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$
+            BEGIN
+                INSERT INTO newly_verified_contract_queue (id) VALUES (NEW.id);
+                RETURN NEW;
+            END;
+            $$;
+            CREATE FUNCTION public.transfer_count() RETURNS trigger
+                LANGUAGE plpgsql
+                AS $$BEGIN
+                IF TG_OP = 'INSERT' THEN
+                UPDATE chain_info SET count = count + 1 WHERE id = 'transfers';
+                RETURN NEW;
+                ELSIF TG_OP = 'DELETE' THEN
+                UPDATE chain_info SET count = count - 1 WHERE id = 'transfers';
+                RETURN OLD;
+                ELSE
+                UPDATE chain_info SET count = 0 WHERE id = 'transfers';
+                RETURN NULL;
+                END IF;
+            END;$$;
+        `)
+        // Create triggers
+        await db.query(`
+            CREATE CONSTRAINT TRIGGER account_count_mod AFTER INSERT OR DELETE ON public.account DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.account_count();
+            CREATE TRIGGER account_count_trunc AFTER TRUNCATE ON public.account FOR EACH STATEMENT EXECUTE FUNCTION public.account_count();
+            CREATE CONSTRAINT TRIGGER block_count_mod AFTER INSERT OR DELETE ON public.block DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.block_count();
+            CREATE TRIGGER block_count_trunc AFTER TRUNCATE ON public.block FOR EACH STATEMENT EXECUTE FUNCTION public.block_count();
+            CREATE CONSTRAINT TRIGGER contract_count_mod AFTER INSERT OR DELETE ON public.contract DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.contract_count();
+            CREATE TRIGGER contract_count_trunc AFTER TRUNCATE ON public.contract FOR EACH STATEMENT EXECUTE FUNCTION public.contract_count();
+            CREATE CONSTRAINT TRIGGER event_count_mod AFTER INSERT OR DELETE ON public.event DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.event_count();
+            CREATE TRIGGER event_count_trunc AFTER TRUNCATE ON public.event FOR EACH STATEMENT EXECUTE FUNCTION public.event_count();
+            CREATE CONSTRAINT TRIGGER extrinsic_count_mod AFTER INSERT OR DELETE ON public.extrinsic DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.extrinsic_count();
+            CREATE TRIGGER extrinsic_count_trunc AFTER TRUNCATE ON public.extrinsic FOR EACH STATEMENT EXECUTE FUNCTION public.extrinsic_count();
+            CREATE CONSTRAINT TRIGGER transfer_count_mod AFTER INSERT OR DELETE ON public.transfer DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.transfer_count();
+            CREATE TRIGGER transfer_count_trunc AFTER TRUNCATE ON public.transfer FOR EACH STATEMENT EXECUTE FUNCTION public.transfer_count();
+            CREATE TRIGGER verified_contract_found AFTER INSERT ON public.verified_contract FOR EACH ROW EXECUTE FUNCTION public.new_verified_contract_found();
+        `)
         // Insert chain info
         await db.query(`
             INSERT INTO chain_info 
@@ -121,117 +232,6 @@ module.exports = class Data1671527709481 {
         await db.query("INSERT INTO public.verified_contract\n(id, \"name\", filename, \"source\", optimization, compiler_version, compiled_data, args, runs, target, \"type\", contract_data, \"timestamp\")\nVALUES('0x0000000000000000000000000000000000000801', 'Oracle', 'contracts/oracle/Oracle.sol', '{\"contracts/oracle/Oracle.sol\":\"pragma solidity ^0.6.0;\\n\\nimport \\\"../utils/SystemContract.sol\\\";\\nimport \\\"../token/IMultiCurrency.sol\\\";\\n\\ncontract Oracle is SystemContract {\\n    /**\\n     * @dev Get the price of the currency_id.\\n     * Returns the (price, timestamp)\\n     */\\n    function getPrice(address token)\\n    public\\n    view\\n    systemContract(token)\\n    returns (uint256, uint256)\\n    {\\n        require(token != address(0), \\\"Oracle: token is zero address\\\");\\n\\n        uint256 currencyId = IMultiCurrency(token).currencyId();\\n\\n        uint256[2] memory input;\\n\\n        input[0] = 0;\\n        input[1] = currencyId;\\n\\n        uint256[2] memory output;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000403, input, 0x40, output, 0x40)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n        return (output[0], output[1]);\\n    }\\n}\\n\",\"contracts/token/IMultiCurrency.sol\":\"// SPDX-License-Identifier: Apache-2.0\\npragma solidity ^0.6.0;\\n\\ninterface IMultiCurrency {\\n    function currencyId() external view returns (uint256);\\n}\\n\",\"contracts/utils/SystemContract.sol\":\"pragma solidity ^0.6.0;\\n\\ncontract SystemContract {\\n    modifier systemContract(address addr) {\\n        bytes memory addrBytes = abi.encodePacked(addr);\\n        for (uint i = 0; i < 12; i++) {\\n            require(addrBytes[i] == 0, \\\"not a system contract\\\");\\n        }\\n        _;\\n    }\\n}\\n\"}'::json, true, 'v0.6.0+commit.26b70077', '{\"Oracle\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"getPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"IMultiCurrency\":[{\"inputs\":[],\"name\":\"currencyId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"SystemContract\":[]}'::json, '[]'::json, 200, '', 'other', NULL, '2022-12-12 09:47:55.636');\n");
         await db.query("INSERT INTO public.verified_contract\n(id, \"name\", filename, \"source\", optimization, compiler_version, compiled_data, args, runs, target, \"type\", contract_data, \"timestamp\")\nVALUES('0x0000000000000000000000000000000000000802', 'Schedule', 'contracts/schedule/Schedule.sol', '{\"contracts/schedule/Schedule.sol\":\"pragma solidity ^0.6.0;\\n\\ncontract SystemContract {\\n    modifier systemContract(address addr) {\\n        bytes memory addrBytes = abi.encodePacked(addr);\\n        for (uint i = 0; i < 12; i++) {\\n            require(addrBytes[i] == 0, \\\"not a system contract\\\");\\n        }\\n        _;\\n    }\\n}\\n\",\"contracts/schedule/ISchedule.sol\":\"pragma solidity ^0.6.0;\\n\\ninterface ISchedule {\\n    event ScheduledCall(address indexed sender, address indexed contract_address, bytes task_id);\\n    event CanceledCall(address indexed sender, bytes task_id);\\n    event RescheduledCall(address indexed sender, bytes task_id);\\n\\n    // Schedule call the contract.\\n    // Returns a boolean value indicating whether the operation succeeded.\\n    function scheduleCall(\\n        address contract_address, // The contract address to be called in future.\\n        uint256 value, // How much native token to send alone with the call.\\n        uint256 gas_limit, // The gas limit for the call. Corresponding fee will be reserved upfront and refunded after call.\\n        uint256 storage_limit, // The storage limit for the call. Corresponding fee will be reserved upfront and refunded after call.\\n        uint256 min_delay, // Minimum number of blocks before the scheduled call will be called.\\n        bytes calldata input_data // The input data to the call.\\n    )\\n    external\\n    returns (bool); // Returns a boolean value indicating whether the operation succeeded.\\n\\n    // Cancel schedule call the contract.\\n    // Returns a boolean value indicating whether the operation succeeded.\\n    function cancelCall(\\n        bytes calldata task_id // The task id of the scheduler. Get it from the `ScheduledCall` event.\\n    )\\n    external\\n    returns (bool); // Returns a boolean value indicating whether the operation succeeded.\\n\\n    // Reschedule call the contract.\\n    // Returns a boolean value indicating whether the operation succeeded.\\n    function rescheduleCall(\\n        uint256 min_delay, // Minimum number of blocks before the scheduled call will be called.\\n        bytes calldata task_id // The task id of the scheduler. Get it from the `ScheduledCall` event.\\n    )\\n    external\\n    returns (bool); // Returns a boolean value indicating whether the operation succeeded.\\n}\\n\",\"contracts/schedule/ScheduleLib.sol\":\"pragma solidity ^0.6.0;\\n\\nlibrary ScheduleCallLib {\\n    function scheduleCall(\\n        address sender,\\n        address contract_address,\\n        uint256 value,\\n        uint256 gas_limit,\\n        uint256 storage_limit,\\n        uint256 min_delay,\\n        bytes memory input_data\\n    ) internal view returns (bytes memory) {\\n        uint input_data_capacity = (input_data.length + 31)/32;\\n        // param + input_len + input_data\\n        uint input_size = 7 + 1 + input_data_capacity;\\n\\n        // Dynamic arrays will add the array size to the front of the array, pre-compile needs to deal with the `size`.\\n        uint256[] memory input = new uint256[](input_size);\\n\\n        input[0] = 0;\\n        input[1] = uint256(sender);\\n        input[2] = uint256(contract_address);\\n        input[3] = uint256(value);\\n        input[4] = uint256(gas_limit);\\n        input[5] = uint256(storage_limit);\\n        input[6] = uint256(min_delay);\\n\\n        // input_len\\n        input[7] = uint256(input_data.length);\\n\\n        for (uint i = 0; i < input_data_capacity; i++) {\\n            input[8 + i] = bytes2Uint(input_data, i);\\n        }\\n\\n        // Dynamic arrays will add the array size to the front of the array, so need extra 1 size.\\n        uint input_size_32 = (input_size + 1) * 32;\\n\\n        uint256[3] memory output;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000404, input, input_size_32, output, 0x60)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n\\n        bytes memory task_id = new bytes(output[0]);\\n        bytes memory result = abi.encodePacked(output[1], output[2]);\\n        for (uint i = 0; i < task_id.length; i++) {\\n            task_id[i] = result[i];\\n        }\\n\\n        return task_id;\\n    }\\n\\n    function cancelCall(\\n        address sender,\\n        bytes memory task_id\\n    ) internal {\\n        uint input_data_capacity = (task_id.length + 31)/32;\\n        // param + task_id_len + task_id\\n        uint input_size = 2 + 1 + input_data_capacity;\\n        uint256[] memory input = new uint256[](input_size);\\n\\n        input[0] = 1;\\n        input[1] = uint256(sender);\\n\\n        // task_id_len\\n        input[2] = uint256(task_id.length);\\n\\n        for (uint i = 0; i < input_data_capacity; i++) {\\n            input[3 + i] = bytes2Uint(task_id, i);\\n        }\\n\\n        // Dynamic arrays will add the array size to the front of the array, so need extra 1 size.\\n        uint input_size_32 = (input_size + 1) * 32;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000404, input, input_size_32, 0x00, 0x00)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n    }\\n\\n    function rescheduleCall(\\n        address sender,\\n        uint256 min_delay,\\n        bytes memory task_id\\n    ) internal {\\n        uint input_data_capacity = (task_id.length + 31)/32;\\n        // param + task_id_len + task_id\\n        uint input_size = 3 + 1 + input_data_capacity;\\n        uint256[] memory input = new uint256[](input_size);\\n\\n        input[0] = 2;\\n        input[1] = uint256(sender);\\n        input[2] = uint256(min_delay);\\n\\n        // task_id_len\\n        input[3] = uint256(task_id.length);\\n\\n        for (uint i = 0; i < input_data_capacity; i++) {\\n            input[4 + i] = bytes2Uint(task_id, i);\\n        }\\n\\n        // Dynamic arrays will add the array size to the front of the array, so need extra 1 size.\\n        uint input_size_32 = (input_size + 1) * 32;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000404, input, input_size_32, 0x00, 0x00)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n    }\\n\\n    function bytes2Uint(bytes memory bs, uint index) public pure returns (uint) {\\n        // require(bs.length >= start + 32, \\\"slicing out of range\\\");\\n        // if bs.length < start + 32, 0 will be added at the end.\\n        uint start = index * 32;\\n        uint x;\\n        assembly {\\n            x := mload(add(bs, add(0x20, start)))\\n        }\\n        return x;\\n    }\\n}\\n\\n\"}'::json, true, 'v0.6.0+commit.26b70077', '{\"Schedule\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"CanceledCall\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"RescheduledCall\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contract_address\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"ScheduledCall\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contract_address\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gas_limit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"storage_limit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"min_delay\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input_data\",\"type\":\"bytes\"}],\"name\":\"scheduleCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"cancelCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"min_delay\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"rescheduleCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"ISchedule\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"CanceledCall\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"RescheduledCall\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contract_address\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"ScheduledCall\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contract_address\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gas_limit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"storage_limit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"min_delay\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input_data\",\"type\":\"bytes\"}],\"name\":\"scheduleCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"cancelCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"min_delay\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"task_id\",\"type\":\"bytes\"}],\"name\":\"rescheduleCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"ScheduleCallLib\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"bs\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"bytes2Uint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]}'::json, '[]'::json, 200, '', 'other', NULL, '2022-12-12 09:47:55.636');\n");
         await db.query("INSERT INTO public.verified_contract\n(id, \"name\", filename, \"source\", optimization, compiler_version, compiled_data, args, runs, target, \"type\", contract_data, \"timestamp\")\nVALUES('0x0000000000000000000000000000000000000803', 'DEX', 'contracts/dex/DEX.sol', '{\"contracts/dex/DEX.sol\":\"pragma solidity ^0.6.0;\\n\\nimport \\\"./IDEX.sol\\\";\\nimport \\\"../utils/SystemContract.sol\\\";\\nimport \\\"../token/IMultiCurrency.sol\\\";\\n\\ncontract DEX is SystemContract, IDEX {\\n    /**\\n     * @dev Get liquidity of the currency_id_a and currency_id_b.\\n     * Returns (liquidity_a, liquidity_b)\\n     */\\n    function getLiquidity(address tokenA, address tokenB)\\n    public\\n    view\\n    override\\n    systemContract(tokenA)\\n    systemContract(tokenB)\\n    returns (uint256, uint256)\\n    {\\n        require(tokenA != address(0), \\\"DEX: tokenA is zero address\\\");\\n        require(tokenB != address(0), \\\"DEX: tokenB is zero address\\\");\\n\\n        uint256 currencyIdA = IMultiCurrency(tokenA).currencyId();\\n        uint256 currencyIdB = IMultiCurrency(tokenB).currencyId();\\n\\n        uint256[3] memory input;\\n\\n        input[0] = 0;\\n        input[1] = currencyIdA;\\n        input[2] = currencyIdB;\\n\\n        uint256[2] memory output;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000405, input, 0x60, output, 0x40)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n        return (output[0], output[1]);\\n    }\\n\\n    /**\\n     * @dev Swap with exact supply.\\n     * Returns (target_amount)\\n     */\\n    function swapWithExactSupply(address tokenA, address tokenB, uint256 supplyAmount, uint256 minTargetAmount)\\n    public\\n    view\\n    override\\n    systemContract(tokenA)\\n    systemContract(tokenB)\\n    returns (uint256) {\\n        require(tokenA != address(0), \\\"DEX: tokenA is zero address\\\");\\n        require(tokenB != address(0), \\\"DEX: tokenB is zero address\\\");\\n        require(supplyAmount != 0, \\\"DEX: supplyAmount is zero\\\");\\n\\n        uint256 currencyIdA = IMultiCurrency(tokenA).currencyId();\\n        uint256 currencyIdB = IMultiCurrency(tokenB).currencyId();\\n\\n        uint256[6] memory input;\\n\\n        input[0] = 1;\\n        input[1] = uint256(msg.sender);\\n        input[2] = currencyIdA;\\n        input[3] = currencyIdB;\\n        input[4] = supplyAmount;\\n        input[5] = minTargetAmount;\\n\\n        uint256[1] memory output;\\n\\n        assembly {\\n            if iszero(\\n                staticcall(gas(), 0x0000000000000000405, input, 0xC0, output, 0x20)\\n            ) {\\n                revert(0, 0)\\n            }\\n        }\\n        return output[0];\\n    }\\n}\\n\",\"contracts/dex/IDEX.sol\":\"pragma solidity ^0.6.0;\\n\\ninterface IDEX {\\n    // Get liquidity of the currency_id_a and currency_id_b.\\n    // Returns (liquidity_a, liquidity_b)\\n    function getLiquidity(address tokenA, address tokenB) external view returns (uint256, uint256);\\n\\n    // Swap with exact supply.\\n    // Returns (target_amount)\\n    function swapWithExactSupply(address tokenA, address tokenB, uint256 supplyAmount, uint256 minTargetAmount) external view returns (uint256);\\n}\\n\",\"contracts/token/IMultiCurrency.sol\":\"// SPDX-License-Identifier: Apache-2.0\\npragma solidity ^0.6.0;\\n\\ninterface IMultiCurrency {\\n    function currencyId() external view returns (uint256);\\n}\\n\",\"contracts/utils/SystemContract.sol\":\"pragma solidity ^0.6.0;\\n\\ncontract SystemContract {\\n    modifier systemContract(address addr) {\\n        bytes memory addrBytes = abi.encodePacked(addr);\\n        for (uint i = 0; i < 12; i++) {\\n            require(addrBytes[i] == 0, \\\"not a system contract\\\");\\n        }\\n        _;\\n    }\\n}\\n\"}'::json, true, 'v0.6.0+commit.26b70077', '{\"DEX\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\"}],\"name\":\"getLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"supplyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minTargetAmount\",\"type\":\"uint256\"}],\"name\":\"swapWithExactSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"IDEX\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\"}],\"name\":\"getLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenA\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenB\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"supplyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minTargetAmount\",\"type\":\"uint256\"}],\"name\":\"swapWithExactSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"IMultiCurrency\":[{\"inputs\":[],\"name\":\"currencyId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"SystemContract\":[]}'::json, '[]'::json, 200, '', 'other', NULL, '2022-12-12 09:47:55.636');\n");
-        // Create functions
-        await db.query(`
-            CREATE FUNCTION public.account_count() RETURNS trigger
-                    LANGUAGE plpgsql
-                    AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'accounts';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'accounts';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'accounts';
-                RETURN NULL;
-                END IF;
-            END;$$;
-            CREATE FUNCTION public.block_count() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'blocks';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'blocks';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'blocks';
-                RETURN NULL;
-                END IF;
-            END;$$;
-            CREATE FUNCTION public.contract_count() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'contracts';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'contracts';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'contracts';
-                RETURN NULL;
-                END IF;
-            END;$$;
-            CREATE FUNCTION public.event_count() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'events';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'events';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'events';
-                RETURN NULL;
-                END IF;
-            END;$$;
-            CREATE FUNCTION public.extrinsic_count() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'extrinsics';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'extrinsics';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'extrinsics';
-                RETURN NULL;
-                END IF;
-            END;$$;
-            CREATE FUNCTION public.new_verified_contract_found() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$
-            BEGIN
-                INSERT INTO newly_verified_contract_queue (id) VALUES (NEW.id);
-                RETURN NEW;
-            END;
-            $$;
-            CREATE FUNCTION public.transfer_count() RETURNS trigger
-                LANGUAGE plpgsql
-                AS $$BEGIN
-                IF TG_OP = 'INSERT' THEN
-                UPDATE chain_info SET count = count + 1 WHERE id = 'transfers';
-                RETURN NEW;
-                ELSIF TG_OP = 'DELETE' THEN
-                UPDATE chain_info SET count = count - 1 WHERE id = 'transfers';
-                RETURN OLD;
-                ELSE
-                UPDATE chain_info SET count = 0 WHERE id = 'transfers';
-                RETURN NULL;
-                END IF;
-            END;$$;
-        `)
-        // Create triggers
-        await db.query(`
-            CREATE CONSTRAINT TRIGGER account_count_mod AFTER INSERT OR DELETE ON public.account DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.account_count();
-            CREATE TRIGGER account_count_trunc AFTER TRUNCATE ON public.account FOR EACH STATEMENT EXECUTE FUNCTION public.account_count();
-            CREATE CONSTRAINT TRIGGER block_count_mod AFTER INSERT OR DELETE ON public.block DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.block_count();
-            CREATE TRIGGER block_count_trunc AFTER TRUNCATE ON public.block FOR EACH STATEMENT EXECUTE FUNCTION public.block_count();
-            CREATE CONSTRAINT TRIGGER contract_count_mod AFTER INSERT OR DELETE ON public.contract DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.contract_count();
-            CREATE TRIGGER contract_count_trunc AFTER TRUNCATE ON public.contract FOR EACH STATEMENT EXECUTE FUNCTION public.contract_count();
-            CREATE CONSTRAINT TRIGGER event_count_mod AFTER INSERT OR DELETE ON public.event DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.event_count();
-            CREATE TRIGGER event_count_trunc AFTER TRUNCATE ON public.event FOR EACH STATEMENT EXECUTE FUNCTION public.event_count();
-            CREATE CONSTRAINT TRIGGER extrinsic_count_mod AFTER INSERT OR DELETE ON public.extrinsic DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.extrinsic_count();
-            CREATE TRIGGER extrinsic_count_trunc AFTER TRUNCATE ON public.extrinsic FOR EACH STATEMENT EXECUTE FUNCTION public.extrinsic_count();
-            CREATE CONSTRAINT TRIGGER transfer_count_mod AFTER INSERT OR DELETE ON public.transfer DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.transfer_count();
-            CREATE TRIGGER transfer_count_trunc AFTER TRUNCATE ON public.transfer FOR EACH STATEMENT EXECUTE FUNCTION public.transfer_count();
-            CREATE TRIGGER verified_contract_found AFTER INSERT ON public.verified_contract FOR EACH ROW EXECUTE FUNCTION public.new_verified_contract_found();
-        `)
     }
 
     async down(db) {
