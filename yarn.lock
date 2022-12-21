@@ -3075,7 +3075,7 @@
   resolved "https://registry.yarnpkg.com/@sqltools/formatter/-/formatter-1.2.5.tgz#3abc203c79b8c3e90fd6c156a0c62d5403520e12"
   integrity sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==
 
-"@subsquid/archive-registry@^1.0.18":
+"@subsquid/archive-registry@1.0.18":
   version "1.0.18"
   resolved "https://registry.yarnpkg.com/@subsquid/archive-registry/-/archive-registry-1.0.18.tgz#9e5639b29b4fac306a35bc4394509dad06429f11"
   integrity sha512-3o1adzHc0Xxj7jlIEC3A6fmyfMcAHuIFE9mEsE1Fp+0O76moqCpvRYCtu8qBWNqudq2BjfjiswPJnK1ouCOMUQ==
@@ -3084,7 +3084,7 @@
     node-fetch "^2"
     semver "^7.3.5"
 
-"@subsquid/cli@^0.7.4":
+"@subsquid/cli@0.7.4":
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/@subsquid/cli/-/cli-0.7.4.tgz#c88e3cef4ebead32afe673a233913743342ee94a"
   integrity sha512-tvZIHCLH6MWeZkfqDqoz0uXFxQFOSd3zunSW2Leey37qa/h01agOeHDRQ97BOsZM90aFifDQVJe9s15ULY2yBA==
@@ -3101,7 +3101,7 @@
     query-string "^7.1.0"
     simple-git "^2.48.0"
 
-"@subsquid/evm-typegen@^2.0.2":
+"@subsquid/evm-typegen@2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@subsquid/evm-typegen/-/evm-typegen-2.0.2.tgz#1865bc44b84d31104b505ae502d087fe7ba55da7"
   integrity sha512-ENKy2vxifoQ4cnc8T3IbPKNCA34m2mJqRakgKS9qtV5YHVySfwtUjcy2bjBra6pcmjaDF1dwChNdIcvvaDV+YA==
@@ -3230,14 +3230,14 @@
     base-x "^3.0.9"
     blake2b "^2.1.4"
 
-"@subsquid/ss58@^0.1.2":
+"@subsquid/ss58@0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@subsquid/ss58/-/ss58-0.1.2.tgz#304b9740196dce406e0742a775db59a4500c4129"
   integrity sha512-oT7EBliBNt0TD4789IrcAolA1bduMSvEyEysyZgk/G9DdFQbwW21ApNwCubasGnrnlp+JOoxILZOknd5GoWNbQ==
   dependencies:
     "@subsquid/ss58-codec" "^0.1.1"
 
-"@subsquid/substrate-metadata-explorer@^1.0.9":
+"@subsquid/substrate-metadata-explorer@1.0.9", "@subsquid/substrate-metadata-explorer@^1.0.9":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@subsquid/substrate-metadata-explorer/-/substrate-metadata-explorer-1.0.9.tgz#6044fa38b6227076aa1f206d9dc68ab61060a992"
   integrity sha512-5GwdPsDUzEyIYdoo+E56C8wuyR7oHSzUY6WQJfLK1XrZ54Gk8K8LpWtAgtifnRLAknXIAgXq4lXLfhTKhrf2hA==
@@ -3259,7 +3259,7 @@
     "@subsquid/util-internal" "^1.0.0"
     "@subsquid/util-naming" "^0.0.1"
 
-"@subsquid/substrate-processor@^2.1.0":
+"@subsquid/substrate-processor@2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@subsquid/substrate-processor/-/substrate-processor-2.1.0.tgz#967a672540e00ccf2ae0bf47e07094de10288ffc"
   integrity sha512-nbDfQ7YwShiEBdq+OkQKjB4vo0yZjYDsraXzHXXkhrEpXGwri/7DhGq1u95fIcw1qjgPu6JA3QcG9ojqRJgi/A==
@@ -3280,7 +3280,7 @@
     blake2b "^2.1.4"
     prom-client "^14.0.1"
 
-"@subsquid/substrate-typegen@^2.0.0":
+"@subsquid/substrate-typegen@2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@subsquid/substrate-typegen/-/substrate-typegen-2.0.0.tgz#c366b6bf35a6e53f445328959e635b2ea54c582a"
   integrity sha512-UPNWoQlA9iuRTlVPPFAkNA/aXvZ6Ne1SDdbvUWy0BXIfRKsi7gRNilfhwJavs0j5lVZIxQviDJ0GFG9eb/BQ2Q==
@@ -3297,7 +3297,7 @@
     ajv "^8.11.0"
     commander "^9.3.0"
 
-"@subsquid/typeorm-codegen@^0.3.1":
+"@subsquid/typeorm-codegen@0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@subsquid/typeorm-codegen/-/typeorm-codegen-0.3.1.tgz#ffccbee2797ed8beb0ba60d1e5678801975ac5f6"
   integrity sha512-oNyKeFkSE9w4lIr1yOUAyVcSAZ694bCni16YH3TJEQnIFs6ANGAvLX/GuSUpcmhW1MN44UhV2jy75l6Oz5ghMA==
@@ -3315,7 +3315,7 @@
   dependencies:
     "@subsquid/util-naming" "^0.0.1"
 
-"@subsquid/typeorm-migration@^0.1.4":
+"@subsquid/typeorm-migration@0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@subsquid/typeorm-migration/-/typeorm-migration-0.1.4.tgz#f4128d9f0b84d8cd63dfc32d4712efd1b0623538"
   integrity sha512-x2VCODuomJrxCPQFJipQ3//0BsrK+dx4lJbr7nPPbh7zULo17pQ0gByD5H849fua3bLDzRzQHm1kCC+IgTj2lg==
@@ -3326,7 +3326,7 @@
     commander "^9.3.0"
     dotenv "^10.0.0"
 
-"@subsquid/typeorm-store@^0.1.5":
+"@subsquid/typeorm-store@0.1.5":
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/@subsquid/typeorm-store/-/typeorm-store-0.1.5.tgz#e552d58882ebf0dae8a092b60b32415c7fcf06e6"
   integrity sha512-m5OwEaEKNlkq8KRvWCGmUJRdSzW4Jqqc4KT6Pko7aCqzBwoJHOXZsPiR+Hofv6w4Lfnwo3dGPSTS2V6R2MdIaA==

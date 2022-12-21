@@ -25,7 +25,7 @@ export const provider = new Provider({ provider: new WsProvider(RPC_URL) });
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange( {from: 0, to: 254532} )
+  .setBlockRange({ from: 0 })
   .setDataSource({
     chain: RPC_URL,
     archive: "http://localhost:8888/graphql", // Use local archive API
