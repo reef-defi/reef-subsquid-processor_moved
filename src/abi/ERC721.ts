@@ -67,41 +67,41 @@ export class Contract extends ContractBase {
 
     balanceOf(owner: string): Promise<ethers.BigNumber> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf']([owner]);
+        return this.ethersContract['balanceOf'](owner);
     }
 
     getApproved(tokenId: ethers.BigNumber): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['getApproved']([tokenId]);
+        return this.ethersContract['getApproved'](tokenId);
     }
 
     isApprovedForAll(owner: string, operator: string): Promise<boolean> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['isApprovedForAll']([owner, operator]);
+        return this.ethersContract['isApprovedForAll'](owner, operator);
     }
 
     name(): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['name']([]);
+        return this.ethersContract['name']();
     }
 
     ownerOf(tokenId: ethers.BigNumber): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['ownerOf']([tokenId]);
+        return this.ethersContract['ownerOf'](tokenId);
     }
 
     supportsInterface(interfaceId: string): Promise<boolean> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['supportsInterface']([interfaceId]);
+        return this.ethersContract['supportsInterface'](interfaceId);
     }
 
     symbol(): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['symbol']([]);
+        return this.ethersContract['symbol']();
     }
 
     tokenURI(tokenId: ethers.BigNumber): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['tokenURI']([tokenId]);
+        return this.ethersContract['tokenURI'](tokenId);
     }
 }

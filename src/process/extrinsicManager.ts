@@ -27,7 +27,7 @@ export class ExtrinsicManager {
             args: extrinsicRaw.call.args ? Object.keys(extrinsicRaw.call.args).map(key => extrinsicRaw.call.args[key]) : [],
             docs: "", // TODO
             method: toCamelCase(extrinsicRaw.call.name.split(".")[1]),
-            section: toCamelCase(extrinsicRaw.call.name.split(".")[0]),
+            section: extrinsicRaw.call.name.split(".")[0],
             signer: signer || "",
             status: extrinsicRaw.success ? ExtrinsicStatus.success : ExtrinsicStatus.error,
             errorMessage: extrinsicRaw.error || "",

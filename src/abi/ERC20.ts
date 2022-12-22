@@ -58,31 +58,31 @@ export class Contract extends ContractBase {
 
     allowance(owner: string, spender: string): Promise<ethers.BigNumber> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['allowance']([owner, spender]);
+        return this.ethersContract['allowance'](owner, spender);
     }
 
     balanceOf(account: string): Promise<ethers.BigNumber> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf']([account]);
+        return this.ethersContract['balanceOf'](account);
     }
 
     decimals(): Promise<number> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['decimals']([]);
+        return this.ethersContract['decimals']();
     }
 
     name(): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['name']([]);
+        return this.ethersContract['name']();
     }
 
     symbol(): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['symbol']([]);
+        return this.ethersContract['symbol']();
     }
 
     totalSupply(): Promise<ethers.BigNumber> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['totalSupply']([]);
+        return this.ethersContract['totalSupply']();
     }
 }

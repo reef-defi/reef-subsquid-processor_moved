@@ -28,8 +28,8 @@ const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
   .setDataSource({
     chain: RPC_URL,
-    archive: "http://localhost:8888/graphql", // Use local archive API
-    // archive: lookupArchive('reef', {release: "FireSquid"}) // Use Aquarium archive API
+    // archive: "http://localhost:8888/graphql", // Use local archive API
+    archive: lookupArchive('reef', {release: "FireSquid"}) // Use Aquarium archive API
   })
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
@@ -45,9 +45,9 @@ processor.run(database, async (ctx) => {
   const eventManager: EventManager = new EventManager();
   const contractManager: ContractManager = new ContractManager();
   const evmEventManager: EvmEventManager = new EvmEventManager();
-  const transferManager: TransferManager = new TransferManager();
   const tokenHolderManager: TokenHolderManager = new TokenHolderManager();
   const stakingManager: StakingManager = new StakingManager();
+  const transferManager: TransferManager = new TransferManager(tokenHolderManager);
   const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
@@ -85,7 +85,7 @@ processor.run(database, async (ctx) => {
             await accountManager.process(addressReserved, block.header);
             break;
           case 'Balances.Transfer': 
-            await transferManager.process(eventRaw, block.header, accountManager, true);
+            await transferManager.process(eventRaw, block.header, accountManager, undefined, true);
             break;
       
           case 'Staking.Rewarded': 

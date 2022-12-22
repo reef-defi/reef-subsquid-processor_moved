@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import { AccountManager } from "./accountManager";
 import { EventRaw, TransferData } from "../interfaces/interfaces";
-import { Account, Block, Contract, Extrinsic, Transfer } from "../model";
+import { Account, Block, Contract, Extrinsic, Transfer, VerifiedContract } from "../model";
 import * as erc20 from "../abi/ERC20";
 import * as erc721 from "../abi/ERC721";
 import * as erc1155 from "../abi/ERC1155";
@@ -11,14 +11,21 @@ import { processErc721Transfer } from "../process/transfer/erc721Transfer";
 import { processErc1155SingleTransfer } from "../process/transfer/erc1155SingleTransfer";
 import { processErc1155BatchTransfer } from "../process/transfer/erc1155BatchTransfer";
 import { processNativeTransfer } from "./transfer/nativeTransfer";
+import { TokenHolderManager } from "./tokenHolderManager";
 
 export class TransferManager {  
     transfersData: TransferData[] = [];
+    tokenHolderManager: TokenHolderManager;
+
+    constructor(tokenHolderManager: TokenHolderManager) {
+        this.tokenHolderManager = tokenHolderManager;
+    }
   
     async process(
         eventRaw: EventRaw, 
         blockHeader: SubstrateBlock, 
         accountManager: AccountManager,
+        contract: VerifiedContract | undefined = undefined,
         isNative: boolean = false
     ) {
         if (isNative) {
@@ -28,17 +35,17 @@ export class TransferManager {
 
         switch (eventRaw.args.topics[0]) {
             case erc20.events.Transfer.topic:
-                const erc20Transfer = await processErc20Transfer(eventRaw, blockHeader, accountManager);
+                const erc20Transfer = await processErc20Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager);
                 if (erc20Transfer) this.transfersData.push(erc20Transfer);
                 break;
             case erc721.events.Transfer.topic:
-                this.transfersData.push(await processErc721Transfer(eventRaw, blockHeader));
+                this.transfersData.push(await processErc721Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
                 break;
             case erc1155.events.TransferSingle.topic:
-                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader)); 
+                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader, accountManager, this.tokenHolderManager)); 
                 break;
             case erc1155.events.TransferBatch.topic:
-                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader));
+                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader, accountManager, this.tokenHolderManager));
                 break;
         }
     }
@@ -77,7 +84,9 @@ export class TransferManager {
 
             // Find token contract in database
             const token = await store.get(Contract, transferData.tokenAddress);
-            if (!token) throw new Error(`Contract ${transferData.tokenAddress} not found`); // TODO: handle this error
+            if (!token) {
+                throw new Error(`Contract ${transferData.tokenAddress} not found`); // TODO: handle this error
+            }
 
             transfers.push(
                 new Transfer({

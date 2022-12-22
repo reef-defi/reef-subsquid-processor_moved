@@ -30,7 +30,7 @@ export const blockIdToHeight = (blockId: string): number => {
 export const findNativeAddress = async (evmAddress: string): Promise<string> => {
     if (!ethers.utils.isAddress(evmAddress) || evmAddress === ethers.constants.AddressZero) return '0x';
     const address = await provider.api.query.evmAccounts.accounts(evmAddress);
-    return address.toString();
+    return address.toString() === '' ? '0x' : address.toString();
 };
 
 export const toCamelCase = (input: string): string => {

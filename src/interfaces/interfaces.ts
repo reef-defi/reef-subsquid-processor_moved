@@ -1,3 +1,4 @@
+import { JsonFragment } from "@ethersproject/abi";
 import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@subsquid/substrate-processor"
 import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, StakingType, TokenHolderType, TransferType } from "../model"
 export interface ExtrinsicData {
@@ -90,6 +91,7 @@ export interface TransferData {
     amount: bigint;
     success: boolean;
     timestamp: Date;
+    denom: string | undefined | null;
     nftId: bigint | undefined | null;
     errorMessage: string | undefined | null;
     feeAmount: bigint;
@@ -153,13 +155,19 @@ export interface CallOrigin {
     value: {__kind: string} & any
 }
   
+export type TokenType = 'ERC20' | 'ERC721' | 'ERC1155';
+
+
+export type ABI = JsonFragment[];
+
+export interface ABIS {
+    [name: string]: ABI;
+}
 
 export interface ERC721Data {
     name: string;
     symbol: string;
-  }
-  export interface ERC20Data extends ERC721Data {
+}
+export interface ERC20Data extends ERC721Data {
     decimals: number;
-  }
-  
-  export type TokenType = 'ERC20' | 'ERC721' | 'ERC1155';
+}

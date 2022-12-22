@@ -1,10 +1,11 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import { AccountManager } from "./accountManager";
-import { EventRaw, EvmEventData } from "../interfaces/interfaces";
-import { Block, Event, EvmEvent, EvmEventStatus, EvmEventType } from "../model";
+import { ABIS, EventRaw, EvmEventData } from "../interfaces/interfaces";
+import { Block, Event, EvmEvent, EvmEventStatus, EvmEventType, VerifiedContract } from "../model";
 import { toChecksumAddress } from "../util";
 import { TransferManager } from "./transferManager";
+import { ethers } from "ethers";
 
 export class EvmEventManager {  
     evmEventsData: EvmEventData[] = [];
@@ -17,6 +18,7 @@ export class EvmEventManager {
         store?: Store
     ) {
         const method = eventRaw.name.split('.')[1];
+        const contractAddress = toChecksumAddress(eventRaw.args.address);
 
         let status;
         let type = EvmEventType.Unverified;
@@ -25,12 +27,16 @@ export class EvmEventManager {
         if (method === 'Log') {
             status = EvmEventStatus.Success;
 
-            // const contract = store!.get(VerifiedContract, address);
+            const contract = await store!.get(VerifiedContract, contractAddress);
+            if (contract) {
+                const iface = new ethers.utils.Interface((contract.compiledData as ABIS)[contract.name]);
+                const topics = eventRaw.args.topics;
+                const data = eventRaw.args.data;
+                dataParsed = iface.parseLog({ topics, data });
+                type = EvmEventType.Verified;
+            }
 
-            // if (contract.verified) { type = EvmEventType.Verified; }
-            // dataParsed = parseEvent(event.args.log);
-
-            await transferManager.process(eventRaw, blockHeader, accountManager);
+            await transferManager.process(eventRaw, blockHeader, accountManager, contract);
         } else if (method === 'ExecutedFailed') {
             status = EvmEventStatus.Error;
         } else {
@@ -42,7 +48,7 @@ export class EvmEventManager {
             blockId: blockHeader.id,
             eventIndex: eventRaw.indexInBlock,
             extrinsicIndex: eventRaw.extrinsic.indexInBlock,
-            contractAddress: toChecksumAddress(eventRaw.args.address),
+            contractAddress: contractAddress,
             dataRaw: eventRaw.args,
             dataParsed: dataParsed,
             method: method,

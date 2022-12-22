@@ -55,26 +55,26 @@ export class Contract extends ContractBase {
 
     balanceOf(account: string, id: ethers.BigNumber): Promise<ethers.BigNumber> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf']([account, id]);
+        return this.ethersContract['balanceOf'](account, id);
     }
 
     balanceOfBatch(accounts: Array<string>, ids: Array<ethers.BigNumber>): Promise<Array<ethers.BigNumber>> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOfBatch']([accounts, ids]);
+        return this.ethersContract['balanceOfBatch'](accounts, ids);
     }
 
     isApprovedForAll(account: string, operator: string): Promise<boolean> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['isApprovedForAll']([account, operator]);
+        return this.ethersContract['isApprovedForAll'](account, operator);
     }
 
     supportsInterface(interfaceId: string): Promise<boolean> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['supportsInterface']([interfaceId]);
+        return this.ethersContract['supportsInterface'](interfaceId);
     }
 
     uri(arg0: ethers.BigNumber): Promise<string> {
         if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['uri']([arg0]);
+        return this.ethersContract['uri'](arg0);
     }
 }

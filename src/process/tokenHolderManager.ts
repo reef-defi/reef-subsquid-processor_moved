@@ -1,6 +1,7 @@
 import { Store } from "@subsquid/typeorm-store";
-import { AccountData, TokenHolderData } from "../interfaces/interfaces";
-import { Account, Contract, TokenHolder, TokenHolderType } from "../model";
+import { TokenHolderData } from "../interfaces/interfaces";
+import { Account, Contract, TokenHolder, TokenHolderType, VerifiedContract } from "../model";
+import { REEF_CONTRACT_ADDRESS, REEF_DEFAULT_DATA } from "../util";
 
 export class TokenHolderManager {  
     tokenHoldersData: Map<string, TokenHolderData> = new Map();
@@ -8,9 +9,10 @@ export class TokenHolderManager {
     process(
         address: string, 
         evmAddress: string,
-        balance: string,
+        balance: bigint,
         timestamp: number,
         tokenAddress: string,
+        contract: VerifiedContract|undefined = undefined,
         nftId: number|null = null
     ) {
         const isContract = address === '0x';
@@ -19,11 +21,11 @@ export class TokenHolderManager {
             id: `${tokenAddress}-${isContract ? evmAddress : address}${nftId ? `-${nftId}` : ''}`,
             tokenAddress: tokenAddress,
             signerAddress: isContract ? '' : address,
-            evmAddress: isContract ? evmAddress : '',
+            evmAddress: isContract ? evmAddress : '', // TODO: what if is an account with evm address claimed?
             nftId: nftId ? BigInt(nftId) : null,
             type: isContract ? TokenHolderType.Contract : TokenHolderType.Account,
-            balance: BigInt(balance),
-            info: {},
+            balance: balance,
+            info: contract ? contract.contractData : tokenAddress === REEF_CONTRACT_ADDRESS ? {...REEF_DEFAULT_DATA} : {},
             timestamp: new Date(timestamp),
         };
 

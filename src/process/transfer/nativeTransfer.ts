@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { EventRaw, TransferData } from "../../interfaces/interfaces";
 import { TransferType } from "../../model";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS, toChecksumAddress } from "../../util";
+import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "../../util";
 
 export const processNativeTransfer = async (
     eventRaw: EventRaw, 
@@ -29,6 +29,7 @@ export const processNativeTransfer = async (
         amount: BigInt(amount),
         success: eventRaw.extrinsic.success,
         timestamp: new Date(blockHeader.timestamp),
+        denom: 'REEF',
         nftId: null,
         errorMessage: eventRaw.extrinsic.success ? '' : '', // TODO get error message
         feeAmount: 0n, // TODO

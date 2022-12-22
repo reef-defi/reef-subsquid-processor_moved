@@ -1,9 +1,9 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import { AccountData } from "../interfaces/interfaces";
-import { Account, Block, TokenHolderType } from "../model";
+import { Account, Block } from "../model";
 import { provider } from "../processor";
-import { REEF_CONTRACT_ADDRESS, REEF_DEFAULT_DATA, toChecksumAddress } from "../util";
+import { REEF_CONTRACT_ADDRESS, toChecksumAddress } from "../util";
 import { TokenHolderManager } from "./tokenHolderManager";
 
 export class AccountManager {  
@@ -21,20 +21,7 @@ export class AccountManager {
         if (!accountData || accountData.blockHeight < blockHeader.height) {
             accountData = await this.getAccountData(address, blockHeader, active);
             this.accountsData.set(address, accountData);
-            this.tokenHolderManager.tokenHoldersData.set(
-                `${REEF_CONTRACT_ADDRESS}-${address}`,
-                {
-                    id: `${REEF_CONTRACT_ADDRESS}-${address}`,
-                    tokenAddress: REEF_CONTRACT_ADDRESS,
-                    signerAddress: address,
-                    evmAddress: null,
-                    nftId: null,
-                    type: TokenHolderType.Account,
-                    balance: accountData.freeBalance,
-                    info: { ...REEF_DEFAULT_DATA },
-                    timestamp: new Date(blockHeader.timestamp),
-                }
-            );
+            this.tokenHolderManager.process(address, '', accountData.freeBalance, blockHeader.timestamp, REEF_CONTRACT_ADDRESS);
         } else if (!active) { // If account already exists and is killed, we update the active flag
             accountData.active = false;
             this.accountsData.set(address, accountData);
