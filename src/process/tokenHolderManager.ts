@@ -50,7 +50,7 @@ export class TokenHolderManager {
     
             // Find token contract in database
             const token = await store.get(Contract, tokenHolderData.tokenAddress);
-            if (!token) throw new Error(`Contract ${tokenHolderData.tokenAddress} not found`); // TODO: handle this error
+            if (!token) continue; // Contract created from Pool factory
     
             tokenHolders.push(
                 new TokenHolder({

@@ -84,9 +84,7 @@ export class TransferManager {
 
             // Find token contract in database
             const token = await store.get(Contract, transferData.tokenAddress);
-            if (!token) {
-                throw new Error(`Contract ${transferData.tokenAddress} not found`); // TODO: handle this error
-            }
+            if (!token) continue; // Contract created from Pool factory
 
             transfers.push(
                 new Transfer({

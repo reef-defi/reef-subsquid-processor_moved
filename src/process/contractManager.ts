@@ -10,9 +10,12 @@ export class ContractManager {
     process(eventRaw: EventRaw, blockHeader: SubstrateBlock) {
         const bytecode = eventRaw.call!.args.init;
         const { context, args } = this.preprocessBytecode(bytecode);
+        const address = typeof eventRaw.args === 'string'
+            ? eventRaw.args // v8
+            : eventRaw.args[1]; // v9
     
         const contractData = {
-            id: toChecksumAddress(eventRaw.args),
+            id: toChecksumAddress(address),
             extrinsicId: eventRaw.extrinsic.id,
             signerAddress: hexToNativeAddress(eventRaw.extrinsic.signature.address.value),
             bytecode: bytecode,
