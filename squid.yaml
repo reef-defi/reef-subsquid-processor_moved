@@ -1,0 +1,48 @@
+manifestVersion: subsquid.io/v0.1
+name: reef-explorer
+version: 1
+description: |-
+  Reef Chain explorer data
+
+build:
+
+deploy:
+  addons:
+    postgres:
+  processor:
+    cmd: [ "node", "lib/processor" ]
+  api:
+    cmd: [ "npx", "squid-graphql-server"]
+
+
+#
+#deploy:
+#  addons:
+#    postgres:
+  # the set of secrets that must be set and provided by Aquarium
+#  secrets:
+#    - ACALA_RPC_ENDPOINT
+#    - COINGECKO_API_KEY
+#  processor:
+#    # additional env variables
+#    environment:
+#      SQD_DEBUG=sqd:mapping
+#    env:
+#      # env variables from a file
+#      - .deploy.env
+#    cmd: [ "node", "lib/processor" ]
+#  api:
+#    # custom run command for the GraphQL server
+#    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--sql-statement-timeout", "1000" ]
+
+#scale:
+#  addons:
+#    postgres:
+#      storage: 100G
+#      profile: medium
+#  processor:
+#    profile: medium
+#  api:
+#    profile: large
+#    # load-balance three replicas
+#    replicas: 3
