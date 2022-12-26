@@ -34,9 +34,8 @@ export class EvmEventManager {
                 const data = eventRaw.args.data;
                 dataParsed = iface.parseLog({ topics, data });
                 type = EvmEventType.Verified;
+                await transferManager.process(eventRaw, blockHeader, accountManager, contract);
             }
-
-            await transferManager.process(eventRaw, blockHeader, accountManager, contract);
         } else if (method === 'ExecutedFailed') {
             status = EvmEventStatus.Error;
         } else {

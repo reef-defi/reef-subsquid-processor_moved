@@ -11,11 +11,11 @@ import { TokenHolderManager } from "../tokenHolderManager";
 export const processErc20Transfer = async (
     eventRaw: EventRaw, 
     blockHeader: SubstrateBlock,
-    contract: VerifiedContract | undefined,
+    token: VerifiedContract,
     accountManager: AccountManager,
     tokenHolderManager: TokenHolderManager
 ): Promise<TransferData | undefined> => {
-    const tokenAddress = toChecksumAddress(eventRaw.args.address);
+    const tokenAddress = token.id;
     if (tokenAddress === REEF_CONTRACT_ADDRESS) return;
     const [from, to, value] = erc20.events.Transfer.decode(eventRaw.args.log || eventRaw.args);
     
@@ -23,23 +23,20 @@ export const processErc20Transfer = async (
     const toEvmAddress = toChecksumAddress(to);
     if (toAddress !== '0x') accountManager.process(toAddress, blockHeader);
     if (ethers.utils.isAddress(toEvmAddress) && toEvmAddress !== ethers.constants.AddressZero) {
-        const toBalance = await new erc20.Contract(tokenAddress, provider).balanceOf(toEvmAddress);
-        tokenHolderManager.process(toAddress, toEvmAddress, BigInt(toBalance.toString()), blockHeader.timestamp, tokenAddress, contract);
+        try {
+            const toBalance = await new erc20.Contract(tokenAddress, provider).balanceOf(toEvmAddress);
+            tokenHolderManager.process(toAddress, toEvmAddress, BigInt(toBalance.toString()), blockHeader.timestamp, token);
+        } catch (e) {}
     }
         
     const fromAddress = await findNativeAddress(from);
     const fromEvmAddress = toChecksumAddress(from);
     if (fromAddress !== '0x') accountManager.process(fromAddress, blockHeader)
     if (ethers.utils.isAddress(fromEvmAddress) && fromEvmAddress !== ethers.constants.AddressZero) {
-        const fromBalance = await new erc20.Contract(tokenAddress, provider).balanceOf(fromEvmAddress);
-        tokenHolderManager.process(fromAddress, fromEvmAddress, BigInt(fromBalance.toString()), blockHeader.timestamp, tokenAddress, contract);
-    }
-
-    let denom = null;
-    if (contract) {
-        denom = (contract.contractData as ERC20Data).symbol;
-    } else {
-        denom = await new erc20.Contract(tokenAddress, provider).symbol();
+        try {
+            const fromBalance = await new erc20.Contract(tokenAddress, provider).balanceOf(fromEvmAddress);
+            tokenHolderManager.process(fromAddress, fromEvmAddress, BigInt(fromBalance.toString()), blockHeader.timestamp, token);
+        } catch (e) {}
     }
 
     const transferData = {
@@ -48,14 +45,14 @@ export const processErc20Transfer = async (
         extrinsicId: eventRaw.extrinsic.id,
         toAddress: toAddress,
         fromAddress: fromAddress,
-        tokenAddress: tokenAddress,
+        token: token,
         toEvmAddress: toEvmAddress,
         fromEvmAddress: fromEvmAddress,
         type: TransferType.ERC20,
         amount: BigInt(value.toString()),
         success: true,
         timestamp: new Date(blockHeader.timestamp),
-        denom: denom,
+        denom: (token.contractData as ERC20Data).symbol,
         nftId: null,
         errorMessage: '',
         feeAmount: 0n, // TODO

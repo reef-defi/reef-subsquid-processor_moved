@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import { AccountManager } from "./accountManager";
 import { EventRaw, TransferData } from "../interfaces/interfaces";
-import { Account, Block, Contract, Extrinsic, Transfer, VerifiedContract } from "../model";
+import { Account, Block, Contract, ContractType, Extrinsic, Transfer, VerifiedContract } from "../model";
 import * as erc20 from "../abi/ERC20";
 import * as erc721 from "../abi/ERC721";
 import * as erc1155 from "../abi/ERC1155";
@@ -25,27 +25,31 @@ export class TransferManager {
         eventRaw: EventRaw, 
         blockHeader: SubstrateBlock, 
         accountManager: AccountManager,
-        contract: VerifiedContract | undefined = undefined,
+        contract: VerifiedContract,
         isNative: boolean = false
     ) {
         if (isNative) {
-            this.transfersData.push(await processNativeTransfer(eventRaw, blockHeader, accountManager));
+            this.transfersData.push(await processNativeTransfer(eventRaw, blockHeader, contract, accountManager));
             return;
         }
 
         switch (eventRaw.args.topics[0]) {
             case erc20.events.Transfer.topic:
+                if (contract.type !== ContractType.ERC20) break;
                 const erc20Transfer = await processErc20Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager);
                 if (erc20Transfer) this.transfersData.push(erc20Transfer);
                 break;
             case erc721.events.Transfer.topic:
+                if (contract.type !== ContractType.ERC721) break;
                 this.transfersData.push(await processErc721Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
                 break;
             case erc1155.events.TransferSingle.topic:
-                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader, accountManager, this.tokenHolderManager)); 
+                if (contract.type !== ContractType.ERC1155) break;
+                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
                 break;
             case erc1155.events.TransferBatch.topic:
-                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader, accountManager, this.tokenHolderManager));
+                if (contract.type !== ContractType.ERC1155) break;
+                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
                 break;
         }
     }
@@ -82,18 +86,13 @@ export class TransferManager {
                 if (!from) throw new Error(`Account ${transferData.fromAddress} not found`); // TODO: handle this error
             }
 
-            // Find token contract in database
-            const token = await store.get(Contract, transferData.tokenAddress);
-            if (!token) continue; // Contract created from Pool factory
-
             transfers.push(
                 new Transfer({
                     ...transferData,
                     block: block,
                     extrinsic: extrinsic,
                     to: to,
-                    from: from,
-                    token: token,
+                    from: from
                 })
             );
         };

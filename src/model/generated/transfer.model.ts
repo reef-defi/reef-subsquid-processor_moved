@@ -3,7 +3,7 @@ import * as marshal from "./marshal"
 import {Block} from "./block.model"
 import {Extrinsic} from "./extrinsic.model"
 import {Account} from "./account.model"
-import {Contract} from "./contract.model"
+import {VerifiedContract} from "./verifiedContract.model"
 import {TransferType} from "./_transferType"
 
 @Entity_()
@@ -32,8 +32,8 @@ export class Transfer {
     from!: Account
 
     @Index_()
-    @ManyToOne_(() => Contract, {nullable: true})
-    token!: Contract
+    @ManyToOne_(() => VerifiedContract, {nullable: true})
+    token!: VerifiedContract
 
     @Index_()
     @Column_("text", {nullable: true})

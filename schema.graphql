@@ -114,7 +114,7 @@ type Transfer @entity {
   extrinsic: Extrinsic!
   to: Account!
   from: Account!
-  token: Contract!
+  token: VerifiedContract!
   toEvmAddress: String @index
   fromEvmAddress: String @index
   type: TransferType!
@@ -130,13 +130,12 @@ type Transfer @entity {
 type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: true) {
   "<tokenAddress>-<signerAddress>-<nftId>"
   id: ID!
-  token: Contract!
+  token: VerifiedContract!
   signer: Account
   evmAddress: String @index
   nftId: BigInt
   type: TokenHolderType!
   balance: BigInt! @index
-  info: JSON!
   timestamp: DateTime!
 }
 

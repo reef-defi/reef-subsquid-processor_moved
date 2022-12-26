@@ -16,12 +16,14 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { hexToNativeAddress } from "./util";
+import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util";
 import { lookupArchive } from "@subsquid/archive-registry";
+import { VerifiedContract } from "./model";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
 
 export const provider = new Provider({ provider: new WsProvider(RPC_URL) });
+export let reefVerifiedContract: VerifiedContract;
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
@@ -39,6 +41,13 @@ export type Context = BatchContext<Store, Item>;
 
 processor.run(database, async (ctx) => {
   await provider.api.isReadyOrError;
+  
+  const reefVerifiedContract_ = await ctx.store.get(VerifiedContract, REEF_CONTRACT_ADDRESS);
+  if (reefVerifiedContract_) {
+    reefVerifiedContract = reefVerifiedContract_;
+  } else {
+    throw new Error('REEF verified contract not found in the database');
+  }
 
   const blockManager: BlockManager = new BlockManager();
   const extrinsicManager: ExtrinsicManager = new ExtrinsicManager();
@@ -53,6 +62,7 @@ processor.run(database, async (ctx) => {
   for (const block of ctx.blocks) {
     blockManager.process(block.header);
 
+    console.log(`Processing block ${block.header.height}`);
     for (const item of block.items) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
@@ -85,7 +95,7 @@ processor.run(database, async (ctx) => {
             await accountManager.process(addressReserved, block.header);
             break;
           case 'Balances.Transfer': 
-            await transferManager.process(eventRaw, block.header, accountManager, undefined, true);
+            await transferManager.process(eventRaw, block.header, accountManager, reefVerifiedContract, true);
             break;
       
           case 'Staking.Rewarded': 

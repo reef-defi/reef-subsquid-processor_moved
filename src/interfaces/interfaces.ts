@@ -1,6 +1,6 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@subsquid/substrate-processor"
-import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, StakingType, TokenHolderType, TransferType } from "../model"
+import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, StakingType, TokenHolderType, TransferType, VerifiedContract } from "../model"
 export interface ExtrinsicData {
     id: string,
     blockId: string,
@@ -84,7 +84,7 @@ export interface TransferData {
     extrinsicId: string;
     toAddress: string;
     fromAddress: string;
-    tokenAddress: string;
+    token: VerifiedContract;
     toEvmAddress: string;
     fromEvmAddress: string;
     type: TransferType;
@@ -99,13 +99,12 @@ export interface TransferData {
 
 export interface TokenHolderData {
     id: string;
-    tokenAddress: string;
+    token: VerifiedContract;
     signerAddress: string | null;
     evmAddress: string | null;
     nftId: bigint | null;
     type: TokenHolderType;
     balance: bigint;
-    info: any;
     timestamp: Date;
 }
 

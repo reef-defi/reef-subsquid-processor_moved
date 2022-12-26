@@ -1,12 +1,13 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { EventRaw, TransferData } from "../../interfaces/interfaces";
-import { TransferType } from "../../model";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "../../util";
+import { TransferType, VerifiedContract } from "../../model";
+import { hexToNativeAddress } from "../../util";
 
 export const processNativeTransfer = async (
     eventRaw: EventRaw, 
-    blockHeader: SubstrateBlock, 
+    blockHeader: SubstrateBlock,
+    contract: VerifiedContract,
     accountManager: AccountManager
 ): Promise<TransferData> => {
     const from = hexToNativeAddress(eventRaw.args[0]);
@@ -22,7 +23,7 @@ export const processNativeTransfer = async (
         extrinsicId: eventRaw.extrinsic.id,
         fromAddress: from,
         toAddress: to,
-        tokenAddress: REEF_CONTRACT_ADDRESS,
+        token: contract,
         fromEvmAddress: fromAccountData.evmAddress,
         toEvmAddress: toAccountData.evmAddress,
         type: TransferType.Native,

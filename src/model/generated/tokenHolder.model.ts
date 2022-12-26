@@ -1,6 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
-import {Contract} from "./contract.model"
+import {VerifiedContract} from "./verifiedContract.model"
 import {Account} from "./account.model"
 import {TokenHolderType} from "./_tokenHolderType"
 
@@ -17,8 +17,8 @@ export class TokenHolder {
     @PrimaryColumn_()
     id!: string
 
-    @ManyToOne_(() => Contract, {nullable: true})
-    token!: Contract
+    @ManyToOne_(() => VerifiedContract, {nullable: true})
+    token!: VerifiedContract
 
     @Index_()
     @ManyToOne_(() => Account, {nullable: true})
@@ -37,9 +37,6 @@ export class TokenHolder {
     @Index_()
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     balance!: bigint
-
-    @Column_("jsonb", {nullable: false})
-    info!: unknown
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
