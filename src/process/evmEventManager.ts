@@ -3,9 +3,10 @@ import { Store } from "@subsquid/typeorm-store";
 import { AccountManager } from "./accountManager";
 import { ABIS, EventRaw, EvmEventData } from "../interfaces/interfaces";
 import { Block, Event, EvmEvent, EvmEventStatus, EvmEventType, VerifiedContract } from "../model";
-import { toChecksumAddress } from "../util";
+import { toChecksumAddress } from "../util/util";
 import { TransferManager } from "./transferManager";
 import { ethers } from "ethers";
+import { ctx } from "../processor";
 
 export class EvmEventManager {  
     evmEventsData: EvmEventData[] = [];
@@ -62,7 +63,7 @@ export class EvmEventManager {
         this.evmEventsData.push(evmEventData);
     }
   
-    async save(blocks: Map<string, Block>, events: Map<string, Event>, store: Store) {
+    async save(blocks: Map<string, Block>, events: Map<string, Event>) {
         const evmLogEvents: EvmEvent[] = this.evmEventsData.map(evmLogEventData => {
             const block = blocks.get(evmLogEventData.blockId);
             if (!block) throw new Error(`Block ${evmLogEventData.blockId} not found`); // TODO: handle this error
@@ -77,8 +78,8 @@ export class EvmEventManager {
             });
         });
     
-        await store.insert(evmLogEvents);
+        await ctx.store.insert(evmLogEvents);
     }
-  }
+}
 
   

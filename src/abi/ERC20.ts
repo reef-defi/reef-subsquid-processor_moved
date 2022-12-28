@@ -1,4 +1,3 @@
-import { Provider } from '@reef-defi/evm-provider';
 import * as ethers from 'ethers'
 import {LogEvent, Func, ContractBase} from './abi.support'
 import {ABI_JSON} from './ERC20.abi'
@@ -52,37 +51,27 @@ export const functions = {
 
 export class Contract extends ContractBase {
 
-    constructor(address: string, provider: Provider) {
-        super(address, provider, abi);
-    }
-
     allowance(owner: string, spender: string): Promise<ethers.BigNumber> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['allowance'](owner, spender);
+        return this.eth_call(functions.allowance, [owner, spender])
     }
 
     balanceOf(account: string): Promise<ethers.BigNumber> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf'](account);
+        return this.eth_call(functions.balanceOf, [account])
     }
 
     decimals(): Promise<number> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['decimals']();
+        return this.eth_call(functions.decimals, [])
     }
 
     name(): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['name']();
+        return this.eth_call(functions.name, [])
     }
 
     symbol(): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['symbol']();
+        return this.eth_call(functions.symbol, [])
     }
 
     totalSupply(): Promise<ethers.BigNumber> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['totalSupply']();
+        return this.eth_call(functions.totalSupply, [])
     }
 }

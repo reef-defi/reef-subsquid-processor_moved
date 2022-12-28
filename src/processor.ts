@@ -4,8 +4,6 @@ import {
   BatchProcessorItem,
   SubstrateBatchProcessor,
 } from "@subsquid/substrate-processor";
-import { Provider } from '@reef-defi/evm-provider';
-import { WsProvider } from '@polkadot/api';
 import { EventRaw } from "./interfaces/interfaces";
 import { AccountManager } from "./process/accountManager";
 import { BlockManager } from "./process/blockManager";
@@ -16,31 +14,32 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util";
+import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
+import { SystemAccountStorage } from "./types/storage";
 
 const RPC_URL = "wss://rpc.reefscan.com/ws";
+// const RPC_URL = "ws://2coge6brv983789i7nh1aafkp4.ingress.bdl.computer:9944";
 
-export const provider = new Provider({ provider: new WsProvider(RPC_URL) });
-export let reefVerifiedContract: VerifiedContract;
+const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
+// const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
-  .setDataSource({
-    chain: RPC_URL,
-    // archive: "http://localhost:8888/graphql", // Use local archive API
-    archive: lookupArchive('reef', {release: "FireSquid"}) // Use Aquarium archive API
-  })
+  .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
 export type Item = BatchProcessorItem<typeof processor>;
 export type Context = BatchContext<Store, Item>;
 
-processor.run(database, async (ctx) => {
-  await provider.api.isReadyOrError;
+export let reefVerifiedContract: VerifiedContract;
+export let ctx: Context;
+
+processor.run(database, async (ctx_) => {
+  ctx = ctx_;
   
   const reefVerifiedContract_ = await ctx.store.get(VerifiedContract, REEF_CONTRACT_ADDRESS);
   if (reefVerifiedContract_) {
@@ -60,6 +59,12 @@ processor.run(database, async (ctx) => {
   const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
+
+    // TODO remove this debug block
+    const storage = new SystemAccountStorage(ctx, block.header);
+    const pairs = await storage.asV5.getPairs();
+    //////////////////////////////////////
+
     blockManager.process(block.header);
 
     console.log(`Processing block ${block.header.height}`);
@@ -113,13 +118,13 @@ processor.run(database, async (ctx) => {
 
   console.log(`Saving blocks from ${ctx.blocks[0].header.height} to ${ctx.blocks[ctx.blocks.length - 1].header.height}`);
 
-  const blocks = await blockManager.save(ctx.store);
-  const extrinsics = await extrinsicManager.save(blocks, ctx.store);
-  const events = await eventManager.save(blocks, extrinsics, ctx.store);
-  const accounts = await accountManager.save(blocks, ctx.store);
-  await contractManager.save(accounts, extrinsics, ctx.store);
-  await evmEventManager.save(blocks, events, ctx.store);
-  await transferManager.save(blocks, extrinsics, accounts, ctx.store);
-  await tokenHolderManager.save(accounts, ctx.store);
-  await stakingManager.save(accounts, events, ctx.store);
+  const blocks = await blockManager.save();
+  const extrinsics = await extrinsicManager.save(blocks);
+  const events = await eventManager.save(blocks, extrinsics);
+  const accounts = await accountManager.save(blocks);
+  await contractManager.save(accounts, extrinsics);
+  await evmEventManager.save(blocks, events);
+  await transferManager.save(blocks, extrinsics, accounts);
+  await tokenHolderManager.save(accounts);
+  await stakingManager.save(accounts, events);
 });

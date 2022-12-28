@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { Block } from "../model";
-import { hexToNativeAddress } from "../util";
+import { ctx } from "../processor";
+import { hexToNativeAddress } from "../util/util";
 
 export class BlockManager {  
     blocks: Map<string, Block> = new Map();
@@ -23,8 +23,8 @@ export class BlockManager {
         this.blocks.set(block.id, block);
     }
   
-    async save(store: Store): Promise<Map<string, Block>> {
-        await store.insert([...this.blocks.values()]);
+    async save(): Promise<Map<string, Block>> {
+        await ctx.store.insert([...this.blocks.values()]);
         return this.blocks;
     }
   }

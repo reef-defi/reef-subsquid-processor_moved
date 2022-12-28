@@ -1,8 +1,8 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { ContractData, EventRaw } from "../interfaces/interfaces";
 import { Account, Contract, Extrinsic } from "../model";
-import { hexToNativeAddress, toChecksumAddress } from "../util";
+import { ctx } from "../processor";
+import { hexToNativeAddress, toChecksumAddress } from "../util/util";
 
 export class ContractManager {  
     contractsData: ContractData[] = [];
@@ -29,7 +29,7 @@ export class ContractManager {
         this.contractsData.push(contractData);
     }
   
-    async save(accounts: Map<string, Account>, extrinsics: Map<string, Extrinsic>, store: Store): Promise<void> {
+    async save(accounts: Map<string, Account>, extrinsics: Map<string, Extrinsic>): Promise<void> {
         const contracts: Contract[] = [];
 
         // TODO: process in parallel
@@ -38,7 +38,7 @@ export class ContractManager {
             let signer = accounts.get(contractData.signerAddress);
             if (!signer) {
                 // If not found, query the database
-                signer = await store.get(Account, contractData.signerAddress);
+                signer = await ctx.store.get(Account, contractData.signerAddress);
                 if (!signer) throw new Error(`Account ${contractData.signerAddress} not found`); // TODO: handle this error
             }
     
@@ -52,7 +52,7 @@ export class ContractManager {
             }));
         };
     
-        await store.insert(contracts);
+        await ctx.store.insert(contracts);
     }
 
     private preprocessBytecode(bytecode: string) {

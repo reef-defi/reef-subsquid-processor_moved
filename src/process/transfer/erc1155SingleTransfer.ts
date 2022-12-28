@@ -2,11 +2,11 @@ import { EventRaw, TransferData } from "../../interfaces/interfaces";
 import { TransferType, VerifiedContract } from "../../model";
 import * as erc1155 from "../../abi/ERC1155";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { findNativeAddress, toChecksumAddress } from "../../util";
+import { findNativeAddress, toChecksumAddress } from "../../util/util";
 import { TokenHolderManager } from "../tokenHolderManager";
 import { AccountManager } from "../accountManager";
 import { ethers } from "ethers";
-import { provider } from "../../processor";
+import { ctx } from "../../processor";
 
 export const processErc1155SingleTransfer = async (
     eventRaw: EventRaw,
@@ -18,22 +18,22 @@ export const processErc1155SingleTransfer = async (
     const tokenAddress = token.id;
     const [, from, to, id, value ] = erc1155.events.TransferSingle.decode(eventRaw.args.log || eventRaw.args);
 
-    const toAddress = await findNativeAddress(to);
+    const toAddress = await findNativeAddress(blockHeader, to);
     const toEvmAddress = toChecksumAddress(to);
     if (toAddress !== '0x') accountManager.process(toAddress, blockHeader);
     if (ethers.utils.isAddress(toEvmAddress) && toEvmAddress !== ethers.constants.AddressZero) {
         try {
-            const toBalance = await new erc1155.Contract(tokenAddress, provider).balanceOf(toEvmAddress, id);
+            const toBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(toEvmAddress, id);
             tokenHolderManager.process(toAddress, toEvmAddress, BigInt(toBalance.toString()), blockHeader.timestamp, token, Number(id));
         } catch (e) {}
     }
         
-    const fromAddress = await findNativeAddress(from);
+    const fromAddress = await findNativeAddress(blockHeader, from);
     const fromEvmAddress = toChecksumAddress(from);
     if (fromAddress !== '0x') accountManager.process(fromAddress, blockHeader)
     if (ethers.utils.isAddress(fromEvmAddress) && fromEvmAddress !== ethers.constants.AddressZero) {
         try {
-            const fromBalance = await new erc1155.Contract(tokenAddress, provider).balanceOf(fromEvmAddress, id);
+            const fromBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(fromEvmAddress, id);
             tokenHolderManager.process(fromAddress, fromEvmAddress, BigInt(fromBalance.toString()), blockHeader.timestamp, token, Number(id));
         } catch (e) {}
     }

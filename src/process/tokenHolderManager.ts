@@ -1,6 +1,6 @@
-import { Store } from "@subsquid/typeorm-store";
 import { TokenHolderData } from "../interfaces/interfaces";
 import { Account, TokenHolder, TokenHolderType, VerifiedContract } from "../model";
+import { ctx } from "../processor";
 
 export class TokenHolderManager {  
     tokenHoldersData: Map<string, TokenHolderData> = new Map();
@@ -29,7 +29,7 @@ export class TokenHolderManager {
         this.tokenHoldersData.set(tokenHolderData.id, tokenHolderData);
     }
   
-    async save(accounts: Map<string, Account>, store: Store) {
+    async save(accounts: Map<string, Account>) {
         const tokenHolders: TokenHolder[] = [];
 
         // TODO: process in parallel
@@ -40,7 +40,7 @@ export class TokenHolderManager {
                 signer = accounts.get(tokenHolderData.signerAddress);
                 if (!signer) {
                     // If not found, query the database
-                    signer = await store.get(Account, tokenHolderData.signerAddress);
+                    signer = await ctx.store.get(Account, tokenHolderData.signerAddress);
                     if (!signer) throw new Error(`Account ${tokenHolderData.signerAddress} not found`); // TODO: handle this error
                 }
             }
@@ -53,8 +53,8 @@ export class TokenHolderManager {
             );
         };
     
-        await store.save(tokenHolders);
+        await ctx.store.save(tokenHolders);
     }
-  }
+}
 
   

@@ -1,8 +1,8 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { EventData, EventRaw } from "../interfaces/interfaces";
 import { Block, Event, Extrinsic } from "../model";
-import { hexToNativeAddress } from "../util";
+import { ctx } from "../processor";
+import { hexToNativeAddress } from "../util/util";
 
 export class EventManager {  
     eventsData: EventData[] = [];
@@ -23,7 +23,7 @@ export class EventManager {
         this.eventsData.push(eventData);
     }
   
-    async save(blocks: Map<string, Block>, extrinsics: Map<string, Extrinsic>, store: Store): Promise<Map<string, Event>> {
+    async save(blocks: Map<string, Block>, extrinsics: Map<string, Extrinsic>): Promise<Map<string, Event>> {
         const events: Map<string, Event> = new Map();
         this.eventsData.forEach(eventData => {
             const block = blocks.get(eventData.blockId);
@@ -39,7 +39,7 @@ export class EventManager {
             }));
         });
     
-        await store.insert([...events.values()]);
+        await ctx.store.insert([...events.values()]);
     
         return events;
     }

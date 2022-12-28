@@ -1,8 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { AccountManager } from "./accountManager";
 import { EventRaw, TransferData } from "../interfaces/interfaces";
-import { Account, Block, Contract, ContractType, Extrinsic, Transfer, VerifiedContract } from "../model";
+import { Account, Block, ContractType, Extrinsic, Transfer, VerifiedContract } from "../model";
 import * as erc20 from "../abi/ERC20";
 import * as erc721 from "../abi/ERC721";
 import * as erc1155 from "../abi/ERC1155";
@@ -12,6 +11,7 @@ import { processErc1155SingleTransfer } from "../process/transfer/erc1155SingleT
 import { processErc1155BatchTransfer } from "../process/transfer/erc1155BatchTransfer";
 import { processNativeTransfer } from "./transfer/nativeTransfer";
 import { TokenHolderManager } from "./tokenHolderManager";
+import { ctx } from "../processor";
 
 export class TransferManager {  
     transfersData: TransferData[] = [];
@@ -57,8 +57,7 @@ export class TransferManager {
     async save(
         blocks: Map<string, Block>, 
         extrinsics: Map<string, Extrinsic>,
-        accounts: Map<string, Account>,
-        store: Store
+        accounts: Map<string, Account>
     ) {
         const transfers: Transfer[] = [];
 
@@ -74,7 +73,7 @@ export class TransferManager {
             let to = accounts.get(transferData.toAddress);
             if (!to) {
                 // If not found, query the database
-                to = await store.get(Account, transferData.toAddress);
+                to = await ctx.store.get(Account, transferData.toAddress);
                 if (!to) throw new Error(`Account ${transferData.toAddress} not found`); // TODO: handle this error
             }
 
@@ -82,7 +81,7 @@ export class TransferManager {
             let from = accounts.get(transferData.fromAddress);
             if (!from) {
                 // If not found, query the database
-                from = await store.get(Account, transferData.fromAddress);
+                from = await ctx.store.get(Account, transferData.fromAddress);
                 if (!from) throw new Error(`Account ${transferData.fromAddress} not found`); // TODO: handle this error
             }
 
@@ -97,8 +96,8 @@ export class TransferManager {
             );
         };
 
-        await store.insert(transfers);
+        await ctx.store.insert(transfers);
     }
-  }
+}
 
   

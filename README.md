@@ -6,7 +6,7 @@
 
 ```bash
 # 1. Install dependencies
-yarn
+npm install
 
 # 2. Compile typescript files
 make build

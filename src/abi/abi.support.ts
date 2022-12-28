@@ -1,4 +1,3 @@
-import { Provider } from '@reef-defi/evm-provider'
 import * as ethers from 'ethers'
 
 
@@ -61,18 +60,55 @@ export function isFunctionResultDecodingError(val: unknown): val is Error & {dat
 }
 
 
+export interface ChainContext  {
+    _chain: Chain
+}
+
+
+export interface BlockContext  {
+    _chain: Chain
+    block: Block
+}
+
+
+export interface Block  {
+    hash: string
+}
+
+
+export interface Chain  {
+    client:  {
+        call: <T=any>(method: string, params?: unknown[]) => Promise<T>
+    }
+}
+
+
 export class ContractBase {
-    readonly ethersContract?: ethers.Contract
+    private readonly _chain: Chain
+    private readonly blockHash: string
     readonly address: string
 
-    constructor(address: string, provider: Provider, abi: ethers.utils.Interface) {
-        this.address = ethers.utils.getAddress(address)
-        if (provider) {
-          this.ethersContract = new ethers.Contract(
-            this.address,
-            abi,
-            provider as any
-          );
+    constructor(ctx: BlockContext, address: string)
+    constructor(ctx: ChainContext, block: Block, address: string)
+    constructor(ctx: BlockContext, blockOrAddress: Block | string, address?: string) {
+        this._chain = ctx._chain
+        if (typeof blockOrAddress === 'string')  {
+            this.blockHash = ctx.block.hash
+            this.address = ethers.utils.getAddress(blockOrAddress)
+        } else  {
+            if (address == null) {
+                throw new Error('missing contract address')
+            }
+            this.blockHash = blockOrAddress.hash
+            this.address = ethers.utils.getAddress(address)
         }
+    }
+
+    async eth_call<Args extends any[], FieldArgs, Result>(func: Func<Args, FieldArgs, Result>, args: Args): Promise<Result> {
+        let data = func.encode(args)
+        let result = await this._chain.client.call('evm_call', [
+            {to: this.address, data, from: undefined, storageLimit: 0}
+        ])
+        return func.decodeResult(result)
     }
 }
