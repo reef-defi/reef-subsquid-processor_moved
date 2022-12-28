@@ -29,6 +29,7 @@ const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
+    .setTypesBundle('typesBundle.json')
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
@@ -40,7 +41,7 @@ export let ctx: Context;
 
 processor.run(database, async (ctx_) => {
   ctx = ctx_;
-  
+
   const reefVerifiedContract_ = await ctx.store.get(VerifiedContract, REEF_CONTRACT_ADDRESS);
   if (reefVerifiedContract_) {
     reefVerifiedContract = reefVerifiedContract_;
@@ -71,49 +72,49 @@ processor.run(database, async (ctx_) => {
     for (const item of block.items) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
-        
+
         extrinsicManager.process(eventRaw.extrinsic, block.header);
         eventManager.process(eventRaw, block.header);
 
         switch (item.name as string) {
-          case 'EVM.Log': 
+          case 'EVM.Log':
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager, ctx.store);
             break;
           case 'EVM.Created':
             contractManager.process(eventRaw, block.header);
             break;
-          case 'EVM.ExecutedFailed': 
+          case 'EVM.ExecutedFailed':
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager);
             break;
-      
+
           case 'EvmAccounts.ClaimAccount':
             const addressClaimer = hexToNativeAddress(eventRaw.args[0]);
             await accountManager.process(addressClaimer, block.header);
             break;
-      
-          case 'Balances.Endowed': 
+
+          case 'Balances.Endowed':
             const addressEndowed = hexToNativeAddress(eventRaw.args[0]);
             await accountManager.process(addressEndowed, block.header);
             break;
-          case 'Balances.Reserved': 
+          case 'Balances.Reserved':
             const addressReserved = hexToNativeAddress(eventRaw.args[0]);
             await accountManager.process(addressReserved, block.header);
             break;
-          case 'Balances.Transfer': 
+          case 'Balances.Transfer':
             await transferManager.process(eventRaw, block.header, accountManager, reefVerifiedContract, true);
             break;
-      
-          case 'Staking.Rewarded': 
+
+          case 'Staking.Rewarded':
             await stakingManager.process(eventRaw, block.header, accountManager);
             break;
-      
-          case 'System.KilledAccount': 
+
+          case 'System.KilledAccount':
             const address = hexToNativeAddress(eventRaw.args);
             await accountManager.process(address, block.header, false);
             break;
         }
       }
-    }    
+    }
   }
 
   console.log(`Saving blocks from ${ctx.blocks[0].header.height} to ${ctx.blocks[ctx.blocks.length - 1].header.height}`);

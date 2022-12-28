@@ -82,7 +82,6 @@ export interface AccountInfo {
     nonce: number
     consumers: number
     providers: number
-    sufficients: number
     data: AccountData
 }
 
