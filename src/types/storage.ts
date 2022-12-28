@@ -990,7 +990,7 @@ export class EVMAccountsStorage extends StorageBase {
      *  Accounts info.
      */
     get isV5(): boolean {
-        return this.getTypeHash() === '862cfc4e58fd98dcb2ce886b8d438ed8989637391573a6fb40242e04489eb24d'
+        return this.getTypeHash() === '8ff4797feb29ae861731cdad66267cad2afe90dfd5e0a5a5182255f722d5d1cd'
     }
 
     /**
@@ -5130,7 +5130,7 @@ export class SystemAccountStorage extends StorageBase {
      *  The full account information for a particular account ID.
      */
     get isV5(): boolean {
-        return this.getTypeHash() === '1ddc7ade926221442c388ee4405a71c9428e548fab037445aaf4b3a78f4735c1'
+        return this.getTypeHash() === '73070b537f1805475b37167271b33ac7fd6ffad8ba62da08bc14937a017b8bb2'
     }
 
     /**
@@ -5138,6 +5138,21 @@ export class SystemAccountStorage extends StorageBase {
      */
     get asV5(): SystemAccountStorageV5 {
         assert(this.isV5)
+        return this as any
+    }
+
+    /**
+     *  The full account information for a particular account ID.
+     */
+    get isV10(): boolean {
+        return this.getTypeHash() === '1ddc7ade926221442c388ee4405a71c9428e548fab037445aaf4b3a78f4735c1'
+    }
+
+    /**
+     *  The full account information for a particular account ID.
+     */
+    get asV10(): SystemAccountStorageV10 {
+        assert(this.isV10)
         return this as any
     }
 }
@@ -5157,6 +5172,23 @@ export interface SystemAccountStorageV5 {
     getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v5.AccountInfo][]>
     getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v5.AccountInfo][]>
     getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v5.AccountInfo][]>
+}
+
+/**
+ *  The full account information for a particular account ID.
+ */
+export interface SystemAccountStorageV10 {
+    get(key: Uint8Array): Promise<v10.AccountInfo>
+    getAll(): Promise<v10.AccountInfo[]>
+    getMany(keys: Uint8Array[]): Promise<v10.AccountInfo[]>
+    getKeys(): Promise<Uint8Array[]>
+    getKeys(key: Uint8Array): Promise<Uint8Array[]>
+    getKeysPaged(pageSize: number): AsyncIterable<Uint8Array[]>
+    getKeysPaged(pageSize: number, key: Uint8Array): AsyncIterable<Uint8Array[]>
+    getPairs(): Promise<[k: Uint8Array, v: v10.AccountInfo][]>
+    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v10.AccountInfo][]>
+    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v10.AccountInfo][]>
+    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v10.AccountInfo][]>
 }
 
 export class SystemAllExtrinsicsLenStorage extends StorageBase {
