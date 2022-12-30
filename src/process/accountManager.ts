@@ -79,8 +79,7 @@ export class AccountManager {
             evmAddr = addr !== ''
                 ? toChecksumAddress(addr)
                 : addr;
-            // TODO: uncomment this line when evm nonce is available
-            // const evmNonce = await this.getEvmNonce(blockHeader, addr);
+            evmNonce = await this.getEvmNonce(blockHeader, addr);
         }
 
         return {
@@ -105,9 +104,9 @@ export class AccountManager {
     private async getEvmAddress(blockHeader: SubstrateBlock, address: Uint8Array) {
         const storage = new EvmAccountsEvmAddressesStorage(ctx, blockHeader);
 
-        if (!storage.isExists) {
-            return undefined
-        } else if (storage.isV5) {
+        if (!storage.isExists) return undefined;
+        
+        if (storage.isV5) {
             return storage.asV5.get(address).then(
                 (res: Uint8Array | undefined) => {
                     return res ? bufferToString(res as Buffer): res 
@@ -121,9 +120,9 @@ export class AccountManager {
     private async getIdentity(blockHeader: SubstrateBlock, address: Uint8Array) {
         const storage = new IdentityIdentityOfStorage(ctx, blockHeader);
 
-        if (!storage.isExists) {
-            return undefined
-        } else if (storage.isV5) {
+        if (!storage.isExists) return undefined;
+        
+        if (storage.isV5) {
             return storage.asV5.get(address);
         } else {
             throw new Error("Unknown storage version");
@@ -140,9 +139,6 @@ export class AccountManager {
             return 0;
         } else if (storage.isV5) {
             const accountInfo = await storage.asV5.get(evmAddressBytes);
-            return accountInfo?.nonce || 0;
-        } else if (storage.isV7) {
-            const accountInfo = await storage.asV7.get(evmAddressBytes);
             return accountInfo?.nonce || 0;
         } else {
             throw new Error("Unknown storage version");

@@ -19,15 +19,16 @@ export class EvmEventManager {
         store?: Store
     ) {
         const method = eventRaw.name.split('.')[1];
-        const contractAddress = toChecksumAddress(eventRaw.args.address);
 
+        let contractAddress;
         let status;
         let type = EvmEventType.Unverified;
         let dataParsed = {};
+        let topic0, topic1, topic2, topic3 = null;
 
         if (method === 'Log') {
             status = EvmEventStatus.Success;
-
+            contractAddress = toChecksumAddress(eventRaw.args.address);
             const contract = await store!.get(VerifiedContract, contractAddress);
             if (contract) {
                 const iface = new ethers.utils.Interface((contract.compiledData as ABIS)[contract.name]);
@@ -35,10 +36,17 @@ export class EvmEventManager {
                 const data = eventRaw.args.data;
                 dataParsed = iface.parseLog({ topics, data });
                 type = EvmEventType.Verified;
+                topic0 = eventRaw.args.topics[0] || null;
+                topic1 = eventRaw.args.topics[1] || null;
+                topic2 = eventRaw.args.topics[2] || null;
+                topic3 = eventRaw.args.topics[3] || null;
                 await transferManager.process(eventRaw, blockHeader, accountManager, contract);
             }
         } else if (method === 'ExecutedFailed') {
             status = EvmEventStatus.Error;
+            contractAddress = toChecksumAddress(eventRaw.args > 3 ? eventRaw.args[1] : eventRaw.args[0]);
+            // TODO: parse data
+            // dataParsed = eventRaw.args[2];
         } else {
             return;
         }
@@ -54,10 +62,10 @@ export class EvmEventManager {
             method: method,
             type: type,
             status: status,
-            topic0: eventRaw.args.topics[0] || null,
-            topic1: eventRaw.args.topics[1] || null,
-            topic2: eventRaw.args.topics[2] || null,
-            topic3: eventRaw.args.topics[3] || null,
+            topic0: topic0,
+            topic1: topic1,
+            topic2: topic2,
+            topic3: topic3
         };
 
         this.evmEventsData.push(evmEventData);

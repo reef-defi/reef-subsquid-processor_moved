@@ -239,8 +239,9 @@
         "AccountInfo": "AccountInfoWithDualRefCount"
       },
       "typesAlias": {
-        "Evm": {
-          "AccountInfo": "EvmAccountInfo"
+        "evm": {
+          "AccountInfo": "EvmAccountInfo",
+          "Log": "EvmLog"
         }
       }
     },

@@ -78,11 +78,10 @@ export interface Releases_V10 {
     __kind: 'V10'
 }
 
-export interface AccountInfo {
+export interface EvmAccountInfo {
     nonce: number
-    consumers: number
-    providers: number
-    data: AccountData
+    contractInfo: (EvmContractInfo | undefined)
+    developerDeposit: (bigint | undefined)
 }
 
 export interface CodeInfo {
@@ -583,6 +582,13 @@ export interface UnappliedSlash {
     payout: bigint
 }
 
+export interface AccountInfo {
+    nonce: number
+    consumers: number
+    providers: number
+    data: AccountData
+}
+
 export interface ConsumedWeight {
     normal: bigint
     operational: bigint
@@ -653,6 +659,12 @@ export interface Reasons_Misc {
 
 export interface Reasons_All {
     __kind: 'All'
+}
+
+export interface EvmContractInfo {
+    codeHash: Uint8Array
+    maintainer: Uint8Array
+    deployed: boolean
 }
 
 export interface PendingPause {

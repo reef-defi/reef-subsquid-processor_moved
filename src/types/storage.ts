@@ -1,7 +1,6 @@
 import assert from 'assert'
 import {Block, BlockContext, Chain, ChainContext, Option, Result, StorageBase} from './support'
 import * as v5 from './v5'
-import * as v7 from './v7'
 import * as v8 from './v8'
 import * as v10 from './v10'
 
@@ -990,7 +989,7 @@ export class EVMAccountsStorage extends StorageBase {
      *  Accounts info.
      */
     get isV5(): boolean {
-        return this.getTypeHash() === '8ff4797feb29ae861731cdad66267cad2afe90dfd5e0a5a5182255f722d5d1cd'
+        return this.getTypeHash() === '959803c5665567a04768632ffd4a38ac2efc99dbd4a325d75717fbda24cfcbc0'
     }
 
     /**
@@ -1000,55 +999,23 @@ export class EVMAccountsStorage extends StorageBase {
         assert(this.isV5)
         return this as any
     }
-
-    /**
-     *  Accounts info.
-     */
-    get isV7(): boolean {
-        return this.getTypeHash() === '959803c5665567a04768632ffd4a38ac2efc99dbd4a325d75717fbda24cfcbc0'
-    }
-
-    /**
-     *  Accounts info.
-     */
-    get asV7(): EVMAccountsStorageV7 {
-        assert(this.isV7)
-        return this as any
-    }
 }
 
 /**
  *  Accounts info.
  */
 export interface EVMAccountsStorageV5 {
-    get(key: Uint8Array): Promise<(v5.AccountInfo | undefined)>
-    getAll(): Promise<v5.AccountInfo[]>
-    getMany(keys: Uint8Array[]): Promise<(v5.AccountInfo | undefined)[]>
+    get(key: Uint8Array): Promise<(v5.EvmAccountInfo | undefined)>
+    getAll(): Promise<v5.EvmAccountInfo[]>
+    getMany(keys: Uint8Array[]): Promise<(v5.EvmAccountInfo | undefined)[]>
     getKeys(): Promise<Uint8Array[]>
     getKeys(key: Uint8Array): Promise<Uint8Array[]>
     getKeysPaged(pageSize: number): AsyncIterable<Uint8Array[]>
     getKeysPaged(pageSize: number, key: Uint8Array): AsyncIterable<Uint8Array[]>
-    getPairs(): Promise<[k: Uint8Array, v: v5.AccountInfo][]>
-    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v5.AccountInfo][]>
-    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v5.AccountInfo][]>
-    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v5.AccountInfo][]>
-}
-
-/**
- *  Accounts info.
- */
-export interface EVMAccountsStorageV7 {
-    get(key: Uint8Array): Promise<(v7.EvmAccountInfo | undefined)>
-    getAll(): Promise<v7.EvmAccountInfo[]>
-    getMany(keys: Uint8Array[]): Promise<(v7.EvmAccountInfo | undefined)[]>
-    getKeys(): Promise<Uint8Array[]>
-    getKeys(key: Uint8Array): Promise<Uint8Array[]>
-    getKeysPaged(pageSize: number): AsyncIterable<Uint8Array[]>
-    getKeysPaged(pageSize: number, key: Uint8Array): AsyncIterable<Uint8Array[]>
-    getPairs(): Promise<[k: Uint8Array, v: v7.EvmAccountInfo][]>
-    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v7.EvmAccountInfo][]>
-    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v7.EvmAccountInfo][]>
-    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v7.EvmAccountInfo][]>
+    getPairs(): Promise<[k: Uint8Array, v: v5.EvmAccountInfo][]>
+    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v5.EvmAccountInfo][]>
+    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v5.EvmAccountInfo][]>
+    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v5.EvmAccountInfo][]>
 }
 
 export class EVMCodeInfosStorage extends StorageBase {

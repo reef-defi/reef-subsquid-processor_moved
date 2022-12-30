@@ -63,9 +63,9 @@ export class StakingManager {
     private async getStakingPayee(blockHeader: SubstrateBlock, address: Uint8Array) {
         const storage = new StakingPayeeStorage(ctx, blockHeader);
 
-        if (!storage.isExists) {
-            return undefined
-        } else if (storage.isV5) {
+        if (!storage.isExists) return undefined
+        
+        if (storage.isV5) {
             return storage.asV5.get(address);
         } else {
             throw new Error("Unknown storage version");

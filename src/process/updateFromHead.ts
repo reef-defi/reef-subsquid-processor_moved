@@ -38,56 +38,45 @@ const updateAccounts = async (blockHeader: SubstrateBlock) => {
     });
 
     // Get and update EVM nonces
-    // TODO: uncomment when EVMAccountsStorage issue is fixed
-    // if (evmAddresses) {
-    //     const evmNonces = await getEvmNonces(blockHeader, evmAddresses);
-    //     if (evmNonces && evmNonces.size > 0) {
-    //         accounts.forEach((account) => {
-    //             if (account.evmAddress && evmNonces.get(account.evmAddress)) {
-    //                 account.evmNonce = evmNonces.get(account.evmAddress)!;
-    //             }
-    //         });
-    //     }
-    // }
+    if (evmAddresses) {
+        const evmNonces = await getEvmNonces(blockHeader, evmAddresses);
+        if (evmNonces && evmNonces.size > 0) {
+            accounts.forEach((account) => {
+                if (account.evmAddress && evmNonces.get(account.evmAddress)) {
+                    account.evmNonce = evmNonces.get(account.evmAddress)!;
+                }
+            });
+        }
+    }
 
     // Update accounts in DB
+    ctx.log.info(`Updating ${accounts.length} accounts`);
     await ctx.store.save(accounts);
+    ctx.log.info(`Accounts updated`);
 }
 
 const updateTokenHolders = async (blockHeader: SubstrateBlock) => {
-    // // Fetch all token holders in DB
-    // const tokenHolders = await ctx.store.find(
-    //     TokenHolder, { relations: { token: true } });
-
-    // // Filter by token type
-    // const erc20TokenHolders: TokenHolder[] = [];
-    // const erc721TokenHolders: TokenHolder[] = [];
-    // const erc1155TokenHolders: TokenHolder[] = [];
-    // tokenHolders.forEach(tokenHolder => {
-    //     switch (tokenHolder.token.type) {
-    //         case ContractType.ERC20:
-    //             erc20TokenHolders.push(tokenHolder);
-    //         break;
-    //         case ContractType.ERC721:
-    //             erc721TokenHolders.push(tokenHolder);
-    //         break;
-    //         case ContractType.ERC1155:
-    //             erc1155TokenHolders.push(tokenHolder);
-    //         break;
-    //     }
-    // });
-
+    // // Fetch token holders from DB
+    const nativeTokenHolders = await ctx.store.find(TokenHolder, {
+        where: { token: { id: REEF_CONTRACT_ADDRESS } },
+        relations: { token: true, signer: true }
+    });
     const erc20TokenHolders = await ctx.store.find(TokenHolder, {
         where: { token: { type: ContractType.ERC20, id: Not(REEF_CONTRACT_ADDRESS) } },
-        relations: { token: true } 
+        relations: { token: true, signer: true } 
     });
     const erc721TokenHolders = await ctx.store.find(TokenHolder, {
         where: { token: { type: ContractType.ERC721 } },
-        relations: { token: true }
+        relations: { token: true, signer: true }
     });
     const erc1155TokenHolders = await ctx.store.find(TokenHolder, {
         where: { token: { type: ContractType.ERC1155 } },
-        relations: { token: true }
+        relations: { token: true, signer: true }
+    });
+
+    // Update REEF balances
+    nativeTokenHolders.forEach((tokenHolder) => {
+        tokenHolder.balance = tokenHolder.signer?.freeBalance || 0n;
     });
 
     // Get current EVM addresses, native balances and identities
@@ -98,16 +87,23 @@ const updateTokenHolders = async (blockHeader: SubstrateBlock) => {
     ]);
 
     // Update token holders in DB
-    await ctx.store.save([...erc20TokenHolders, ...erc721TokenHolders, ...erc1155TokenHolders]);
-
+    ctx.log.info(`Updating ${nativeTokenHolders.length + erc20TokenHolders.length + 
+        erc721TokenHolders.length + erc1155TokenHolders.length} token holders`);
+    await ctx.store.save([
+        ...nativeTokenHolders,
+        ...erc20TokenHolders,
+        ...erc721TokenHolders,
+        ...erc1155TokenHolders
+    ]);
+    ctx.log.info(`Token holders updated`);
 }
 
 const getEvmAddresses = async(blockHeader: SubstrateBlock, addresses: Uint8Array[]) => {
     const storage = new EvmAccountsEvmAddressesStorage(ctx, blockHeader);
 
-    if (!storage.isExists) {
-        return undefined
-    } else if (storage.isV5) {
+    if (!storage.isExists) return undefined;
+    
+    if (storage.isV5) {
         const res = await storage.asV5.getMany(addresses);
         return res.map((r) => r ? bufferToString(r as Buffer) : '');
     } else {
@@ -118,9 +114,9 @@ const getEvmAddresses = async(blockHeader: SubstrateBlock, addresses: Uint8Array
 const getIdentities = async (blockHeader: SubstrateBlock, addresses: Uint8Array[]) => {
     const storage = new IdentityIdentityOfStorage(ctx, blockHeader);
 
-    if (!storage.isExists) {
-        return undefined
-    } else if (storage.isV5) {
+    if (!storage.isExists) return undefined;
+    
+    if (storage.isV5) {
         return storage.asV5.getMany(addresses);
     } else {
         throw new Error("Unknown storage version");
@@ -134,13 +130,11 @@ const getEvmNonces = async (blockHeader: SubstrateBlock, evmAddresses: string[])
 
     const storage = new EVMAccountsStorage(ctx, blockHeader);
 
-    let accountsInfo = [];
-    if (!storage.isExists) {
-        return undefined;
-    } else if (storage.isV5) {
+    if (!storage.isExists) return undefined;
+
+    let accountsInfo = [];    
+    if (storage.isV5) {
         accountsInfo = await storage.asV5.getMany(evmAddressesBytes);
-    } else if (storage.isV7) {
-        accountsInfo = await storage.asV7.getMany(evmAddressesBytes);
     } else {
         throw new Error("Unknown storage version");
     }
@@ -192,11 +186,12 @@ const getErc1155Balances = async (blockHeader: SubstrateBlock, tokenHolders: Tok
 }
 
 // Queries storage and updates database once head block has been reached
+// TODO - Process in batches, as the number of accounts and token holders can be very large
 export const updateFromHead = async (blockHeader: SubstrateBlock) => {
-    await Promise.all([
-        updateAccounts(blockHeader),
-        updateTokenHolders(blockHeader)
-    ]);
+    ctx.log.info(`Updating accounts and token holders from head block ${blockHeader.height}`);
+    await updateAccounts(blockHeader);
+    // We have to wait for accounts to be updated so that we can get the EVM addresses and updated REEF balances
+    await updateTokenHolders(blockHeader);
 }
 
 

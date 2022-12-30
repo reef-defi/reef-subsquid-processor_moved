@@ -35,12 +35,12 @@ export const findNativeAddress = async (
 ): Promise<string> => {
     if (!ethers.utils.isAddress(evmAddress) || evmAddress === ethers.constants.AddressZero) return '0x';
 
-    const evmAddressBytes = ethers.utils.arrayify(evmAddress);
     const storage = new EvmAccountsAccountsStorage(ctx, blockHeader);
 
-    if (!storage.isExists) {
-        throw new Error("Account storage not found");
-    } else if (storage.isV5) {
+    if (!storage.isExists) throw new Error("Account storage not found");
+    
+    const evmAddressBytes = ethers.utils.arrayify(evmAddress);
+    if (storage.isV5) {
         const account = await storage.asV5.get(evmAddressBytes);
         return account ? ss58.codec('substrate').encode(account) : '0x';
     } else {

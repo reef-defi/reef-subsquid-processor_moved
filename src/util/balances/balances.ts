@@ -9,22 +9,33 @@ const VESTING_ID = '0x76657374696e6720';
 
 const getAccountBalancesBase = async (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesBase> => {
     const storage = new SystemAccountStorage(ctx, blockHeader);
-    if (!storage.isExists || !storage.isV5) {
+
+    if (storage.isV5) {
+        const accountInfo: AccountInfo = await storage.asV5.get(address);
         return {
-            freeBalance: BigInt(0),
-            reservedBalance: BigInt(0),
-            votingBalance: BigInt(0),
-            accountNonce: 0
-        };
+            freeBalance: BigInt(accountInfo.data.free),
+            reservedBalance: BigInt(accountInfo.data.reserved),
+            votingBalance: BigInt(accountInfo.data.free),
+            accountNonce: accountInfo.nonce
+        }
     }
 
-    const accountInfo: AccountInfo = await storage.asV5.get(address);
-    return {
-        freeBalance: BigInt(accountInfo.data.free),
-        reservedBalance: BigInt(accountInfo.data.reserved),
-        votingBalance: BigInt(accountInfo.data.free),
-        accountNonce: accountInfo.nonce
+    if (storage.isV10) {
+        const accountInfo: AccountInfo = await storage.asV10.get(address);
+        return {
+            freeBalance: BigInt(accountInfo.data.free),
+            reservedBalance: BigInt(accountInfo.data.reserved),
+            votingBalance: BigInt(accountInfo.data.free),
+            accountNonce: accountInfo.nonce
+        }
     }
+
+    return {
+        freeBalance: BigInt(0),
+        reservedBalance: BigInt(0),
+        votingBalance: BigInt(0),
+        accountNonce: 0
+    };
 }
 
 const getLockedData = async (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesLocked> => {

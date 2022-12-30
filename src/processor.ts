@@ -14,11 +14,9 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { bufferToString, hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
+import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
-import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage } from "./types/storage";
-import * as ss58 from '@subsquid/ss58';
 import { updateFromHead } from "./process/updateFromHead";
 
 // const RPC_URL = "wss://rpc.reefscan.com/ws";
@@ -64,18 +62,12 @@ processor.run(database, async (ctx_) => {
   const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
-    // TODO remove debug code
-    if (!headReached && block.header.height >= 3_500_000) {
-    // if (ctx.isHead) {
+    if (!headReached && ctx.isHead) {
       headReached = true;
       await updateFromHead(block.header)
     }
 
     blockManager.process(block.header);
-
-    // TODO remove debug code
-    const storage = new EVMAccountsStorage(ctx, block.header);
-    const pairs = await storage.asV5.getPairs();
 
     ctx.log.debug(`Processing block ${block.header.height}`);
 
@@ -115,8 +107,7 @@ processor.run(database, async (ctx_) => {
             break;
 
           case 'Staking.Rewarded':
-            // TODO: uncomment
-            // await stakingManager.process(eventRaw, block.header, accountManager);
+            await stakingManager.process(eventRaw, block.header, accountManager);
             break;
 
           case 'System.KilledAccount':
