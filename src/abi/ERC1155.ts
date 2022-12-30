@@ -1,4 +1,3 @@
-import { Provider } from '@reef-defi/evm-provider';
 import * as ethers from 'ethers'
 import {LogEvent, Func, ContractBase} from './abi.support'
 import {ABI_JSON} from './ERC1155.abi'
@@ -42,39 +41,30 @@ export const functions = {
     supportsInterface: new Func<[interfaceId: string], {interfaceId: string}, boolean>(
         abi, '0x01ffc9a7'
     ),
-    uri: new Func<[ethers.BigNumber], {}, string>(
+    uri: new Func<[_: ethers.BigNumber], {}, string>(
         abi, '0x0e89341c'
     ),
 }
 
 export class Contract extends ContractBase {
 
-    constructor(address: string, provider: Provider) {
-        super(address, provider, abi);
-    }
-
     balanceOf(account: string, id: ethers.BigNumber): Promise<ethers.BigNumber> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf'](account, id);
+        return this.eth_call(functions.balanceOf, [account, id])
     }
 
     balanceOfBatch(accounts: Array<string>, ids: Array<ethers.BigNumber>): Promise<Array<ethers.BigNumber>> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOfBatch'](accounts, ids);
+        return this.eth_call(functions.balanceOfBatch, [accounts, ids])
     }
 
     isApprovedForAll(account: string, operator: string): Promise<boolean> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['isApprovedForAll'](account, operator);
+        return this.eth_call(functions.isApprovedForAll, [account, operator])
     }
 
     supportsInterface(interfaceId: string): Promise<boolean> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['supportsInterface'](interfaceId);
+        return this.eth_call(functions.supportsInterface, [interfaceId])
     }
 
     uri(arg0: ethers.BigNumber): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['uri'](arg0);
+        return this.eth_call(functions.uri, [arg0])
     }
 }

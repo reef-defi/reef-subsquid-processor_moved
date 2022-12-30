@@ -17,7 +17,7 @@ make archive-up
 Prepare
 =======
 - Install dependencies
-yarn
+npm install
 
 - Generate entities from schema.graphql (output in src/model/generated)
 make codegen (npx squid-typeorm-codegen)

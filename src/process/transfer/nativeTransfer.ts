@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { EventRaw, TransferData } from "../../interfaces/interfaces";
 import { TransferType, VerifiedContract } from "../../model";
-import { hexToNativeAddress } from "../../util";
+import { hexToNativeAddress } from "../../util/util";
 
 export const processNativeTransfer = async (
     eventRaw: EventRaw, 

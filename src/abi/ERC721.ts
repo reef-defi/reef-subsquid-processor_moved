@@ -1,4 +1,3 @@
-import { Provider } from '@reef-defi/evm-provider';
 import * as ethers from 'ethers'
 import {LogEvent, Func, ContractBase} from './abi.support'
 import {ABI_JSON} from './ERC721.abi'
@@ -61,47 +60,35 @@ export const functions = {
 
 export class Contract extends ContractBase {
 
-    constructor(address: string, provider: Provider) {
-        super(address, provider, abi);
-    }
-
     balanceOf(owner: string): Promise<ethers.BigNumber> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['balanceOf'](owner);
+        return this.eth_call(functions.balanceOf, [owner])
     }
 
     getApproved(tokenId: ethers.BigNumber): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['getApproved'](tokenId);
+        return this.eth_call(functions.getApproved, [tokenId])
     }
 
     isApprovedForAll(owner: string, operator: string): Promise<boolean> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['isApprovedForAll'](owner, operator);
+        return this.eth_call(functions.isApprovedForAll, [owner, operator])
     }
 
     name(): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['name']();
+        return this.eth_call(functions.name, [])
     }
 
     ownerOf(tokenId: ethers.BigNumber): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['ownerOf'](tokenId);
+        return this.eth_call(functions.ownerOf, [tokenId])
     }
 
     supportsInterface(interfaceId: string): Promise<boolean> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['supportsInterface'](interfaceId);
+        return this.eth_call(functions.supportsInterface, [interfaceId])
     }
 
     symbol(): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['symbol']();
+        return this.eth_call(functions.symbol, [])
     }
 
     tokenURI(tokenId: ethers.BigNumber): Promise<string> {
-        if (!this.ethersContract) throw new Error('Contract not initialized');
-        return this.ethersContract['tokenURI'](tokenId);
+        return this.eth_call(functions.tokenURI, [tokenId])
     }
 }

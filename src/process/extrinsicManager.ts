@@ -1,8 +1,8 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { ExtrinsicData, ExtrinsicRaw } from "../interfaces/interfaces";
 import { Block, Extrinsic, ExtrinsicStatus, ExtrinsicType } from "../model";
-import { hexToNativeAddress, toCamelCase } from "../util";
+import { ctx } from "../processor";
+import { hexToNativeAddress, toCamelCase } from "../util/util";
 
 export class ExtrinsicManager {  
     extrinsicsData: Map<string, ExtrinsicData> = new Map();
@@ -13,10 +13,9 @@ export class ExtrinsicManager {
         let signer = null;
         if (extrinsicRaw.signature?.address?.value) {
             signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
-            // const fee = await provider.api.rpc.payment.queryInfo(extrinsicRaw.hash);
-            // console.log(fee.toJSON());
-            // const feeDetails = await provider.api.rpc.payment.queryFeeDetails(extrinsicRaw.hash);
-            // console.log(feeDetails.toJSON());
+            // TODO: get fee and fee details
+            // rpc.payment.queryInfo(extrinsicRaw.hash);
+            // rpc.payment.queryFeeDetails(extrinsicRaw.hash);
         }
 
         const extrinsicData = {
@@ -39,7 +38,7 @@ export class ExtrinsicManager {
         this.extrinsicsData.set(extrinsicData.id, extrinsicData);
     }
   
-    async save(blocks: Map<string, Block>, store: Store): Promise<Map<string, Extrinsic>> {
+    async save(blocks: Map<string, Block>): Promise<Map<string, Extrinsic>> {
         const extrinsics: Map<string, Extrinsic> = new Map();
         
         this.extrinsicsData.forEach(extrinsicData => {
@@ -52,10 +51,10 @@ export class ExtrinsicManager {
             }));
         });
     
-        await store.insert([...extrinsics.values()]);
+        await ctx.store.insert([...extrinsics.values()]);
     
         return extrinsics;
     }
-  }
+}
 
   
