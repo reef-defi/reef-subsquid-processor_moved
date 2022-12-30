@@ -4,8 +4,6 @@ import { ethers } from "ethers";
 import { ERC20Data } from "../interfaces/interfaces";
 import { ctx } from "../processor";
 import { EvmAccountsAccountsStorage } from "../types/storage";
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { BytesLike, Bytes } from '@ethersproject/bytes';
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
 export const REEF_DEFAULT_DATA: ERC20Data = {
@@ -65,20 +63,21 @@ const bufferToU8a = (buffer?: Buffer | number[] | null): Uint8Array => {
 }
 
 type HexString = `0x${string}`;
+
 const U8_TO_HEX = new Array<string>(256);
 const U16_TO_HEX = new Array<string>(256 * 256);
 
 for (let n = 0; n < 256; n++) {
-    const hex = n.toString(16).padStart(2, '0');
-    U8_TO_HEX[n] = hex;
+  const hex = n.toString(16).padStart(2, '0');
+  U8_TO_HEX[n] = hex;
 }
 
 for (let i = 0; i < 256; i++) {
-    for (let j = 0; j < 256; j++) {
-        const hex = U8_TO_HEX[i] + U8_TO_HEX[j];
-        const n = (i * 256) + j;
-        U16_TO_HEX[n] = hex;
-    }
+  for (let j = 0; j < 256; j++) {
+    const hex = U8_TO_HEX[i] + U8_TO_HEX[j];
+    const n = (i * 256) + j;
+    U16_TO_HEX[n] = hex;
+  }
 }
 
 const hex = (value: Uint8Array): string => {
@@ -109,8 +108,8 @@ const u8aToHex = (value?: Uint8Array | null, bitLength = -1, isPrefixed = true):
           ? `${hex(value.subarray(0, length / 2))}…${hex(value.subarray(value.length - length / 2))}`
           : hex(value)
     }` as HexString;
-  }
-  
+}
+
 export const bufferToString = (buffer: Buffer): string => {
     return u8aToHex(bufferToU8a(buffer));
 }

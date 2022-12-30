@@ -229,11 +229,6 @@
   "signedExtensions": {
     "SetEvmOrigin": "Null"
   },
-  "typesAlias": {
-    "Evm": {
-      "AccountInfo": "EvmAccountInfo"
-    }
-  },
   "versions": [
     {
       "minmax": [
@@ -242,6 +237,11 @@
       ],
       "types": {
         "AccountInfo": "AccountInfoWithDualRefCount"
+      },
+      "typesAlias": {
+        "Evm": {
+          "AccountInfo": "EvmAccountInfo"
+        }
       }
     },
     {

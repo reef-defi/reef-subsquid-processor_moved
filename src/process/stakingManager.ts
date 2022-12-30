@@ -3,7 +3,7 @@ import { AccountManager } from "./accountManager";
 import { EventRaw, StakingData } from "../interfaces/interfaces";
 import { Account, Event, Staking, StakingType } from "../model";
 import { ctx } from "../processor";
-import { findNativeAddress, hexToNativeAddress } from "../util/util";
+import { bufferToString, findNativeAddress, hexToNativeAddress } from "../util/util";
 import { StakingPayeeStorage } from "../types/storage";
 import * as ss58 from '@subsquid/ss58';
 export class StakingManager {  
@@ -15,15 +15,13 @@ export class StakingManager {
     
         await accountManager.process(signerAddress, blockHeader);
     
-        // TODO
-        // const addressBytes = ss58.decode(signerAddress).bytes;
-        // const rewardDestination = await this.getStakingPayee(blockHeader, addressBytes);
-        // // If account has speficied different reward destination we switch the staking signer to that one
-        // if (rewardDestination?.__kind === 'Account' && rewardDestination.value) {
-        //     const signerEvmAddress = uint8ArrayToString(rewardDestination.value);
-        //     signerAddress = await findNativeAddress(blockHeader, signerEvmAddress);
-        //     await accountManager.process(signerAddress, blockHeader);
-        // }
+        const addressBytes = ss58.decode(signerAddress).bytes;
+        const rewardDestination = await this.getStakingPayee(blockHeader, addressBytes);
+        // If account has speficied different reward destination we switch the staking signer to that one
+        if (rewardDestination?.__kind === 'Account' && rewardDestination.value) {
+            signerAddress = hexToNativeAddress(bufferToString(rewardDestination.value as Buffer));
+            await accountManager.process(signerAddress, blockHeader);
+        }
     
         const stakingData = {
             id: eventRaw.id,

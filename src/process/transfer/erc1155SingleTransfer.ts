@@ -6,7 +6,7 @@ import { findNativeAddress, toChecksumAddress } from "../../util/util";
 import { TokenHolderManager } from "../tokenHolderManager";
 import { AccountManager } from "../accountManager";
 import { ethers } from "ethers";
-import { ctx } from "../../processor";
+import { ctx, headReached } from "../../processor";
 
 export const processErc1155SingleTransfer = async (
     eventRaw: EventRaw,
@@ -22,20 +22,27 @@ export const processErc1155SingleTransfer = async (
     const toEvmAddress = toChecksumAddress(to);
     if (toAddress !== '0x') accountManager.process(toAddress, blockHeader);
     if (ethers.utils.isAddress(toEvmAddress) && toEvmAddress !== ethers.constants.AddressZero) {
-        try {
-            const toBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(toEvmAddress, id);
-            tokenHolderManager.process(toAddress, toEvmAddress, BigInt(toBalance.toString()), blockHeader.timestamp, token, Number(id));
-        } catch (e) {}
+        let toBalance = ethers.BigNumber.from(0);
+        if (headReached) {
+            // We start updating balance only after the head block has been reached
+            try {
+                toBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(toEvmAddress, id);
+            } catch (e) {}
+        }
+        tokenHolderManager.process(toAddress, toEvmAddress, BigInt(toBalance.toString()), blockHeader.timestamp, token, Number(id));
     }
         
     const fromAddress = await findNativeAddress(blockHeader, from);
     const fromEvmAddress = toChecksumAddress(from);
     if (fromAddress !== '0x') accountManager.process(fromAddress, blockHeader)
     if (ethers.utils.isAddress(fromEvmAddress) && fromEvmAddress !== ethers.constants.AddressZero) {
-        try {
-            const fromBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(fromEvmAddress, id);
-            tokenHolderManager.process(fromAddress, fromEvmAddress, BigInt(fromBalance.toString()), blockHeader.timestamp, token, Number(id));
-        } catch (e) {}
+        let fromBalance = ethers.BigNumber.from(0);
+        if (headReached) {
+            try {
+                fromBalance = await new erc1155.Contract(ctx, blockHeader, tokenAddress).balanceOf(fromEvmAddress, id);
+            } catch (e) {}
+        }
+        tokenHolderManager.process(fromAddress, fromEvmAddress, BigInt(fromBalance.toString()), blockHeader.timestamp, token, Number(id));
     }
 
     const transferData = {

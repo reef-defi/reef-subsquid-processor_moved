@@ -14,14 +14,15 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
+import { bufferToString, hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
-import { SystemAccountStorage } from "./types/storage";
+import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage } from "./types/storage";
+import * as ss58 from '@subsquid/ss58';
+import { updateFromHead } from "./process/updateFromHead";
 
-const RPC_URL = "wss://rpc.reefscan.com/ws";
-// const RPC_URL = "ws://2coge6brv983789i7nh1aafkp4.ingress.bdl.computer:9944";
-
+// const RPC_URL = "wss://rpc.reefscan.com/ws";
+const RPC_URL = "ws://lcd13huvthe4h0g7l9no22oge8.ingress.bdl.computer:32701";
 const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
 // const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
 
@@ -29,15 +30,18 @@ const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
-    .setTypesBundle('typesBundle.json')
+  .setTypesBundle('typesBundle.json') // TODO: remove once the archive registry is updated
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
 export type Item = BatchProcessorItem<typeof processor>;
 export type Context = BatchContext<Store, Item>;
-
 export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
+export let headReached = false;
+
+// Avoid typeerrors when serializing BigInts
+(BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 processor.run(database, async (ctx_) => {
   ctx = ctx_;
@@ -60,15 +64,21 @@ processor.run(database, async (ctx_) => {
   const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
-
-    // TODO remove this debug block
-    const storage = new SystemAccountStorage(ctx, block.header);
-    const pairs = await storage.asV5.getPairs();
-    //////////////////////////////////////
+    // TODO remove debug code
+    if (!headReached && block.header.height >= 3_500_000) {
+    // if (ctx.isHead) {
+      headReached = true;
+      await updateFromHead(block.header)
+    }
 
     blockManager.process(block.header);
 
-    console.log(`Processing block ${block.header.height}`);
+    // TODO remove debug code
+    const storage = new EVMAccountsStorage(ctx, block.header);
+    const pairs = await storage.asV5.getPairs();
+
+    ctx.log.debug(`Processing block ${block.header.height}`);
+
     for (const item of block.items) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
@@ -105,7 +115,8 @@ processor.run(database, async (ctx_) => {
             break;
 
           case 'Staking.Rewarded':
-            await stakingManager.process(eventRaw, block.header, accountManager);
+            // TODO: uncomment
+            // await stakingManager.process(eventRaw, block.header, accountManager);
             break;
 
           case 'System.KilledAccount':
@@ -117,7 +128,7 @@ processor.run(database, async (ctx_) => {
     }
   }
 
-  console.log(`Saving blocks from ${ctx.blocks[0].header.height} to ${ctx.blocks[ctx.blocks.length - 1].header.height}`);
+  ctx.log.info(`Saving blocks from ${ctx.blocks[0].header.height} to ${ctx.blocks[ctx.blocks.length - 1].header.height}`);
 
   const blocks = await blockManager.save();
   const extrinsics = await extrinsicManager.save(blocks);

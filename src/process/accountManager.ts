@@ -1,13 +1,14 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountData } from "../interfaces/interfaces";
 import { Account, Block } from "../model";
-import { ctx, reefVerifiedContract } from "../processor";
+import { ctx, headReached, reefVerifiedContract } from "../processor";
 import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage, IdentityIdentityOfStorage } from "../types/storage";
 import { bufferToString, toChecksumAddress } from "../util/util";
 import { TokenHolderManager } from "./tokenHolderManager";
 import * as ss58 from '@subsquid/ss58';
 import { ethers } from "ethers";
 import { getBalancesAccount } from "../util/balances/balances";
+import { AccountBalances } from "../util/balances/types";
 
 export class AccountManager {  
     accountsData: Map<string, AccountData> = new Map();
@@ -51,19 +52,37 @@ export class AccountManager {
     }
   
     private async getAccountData(address: string, blockHeader: SubstrateBlock, active: boolean): Promise<AccountData> {
-        const addressBytes = ss58.decode(address).bytes;
-        const [evmAddress, balances, identity] = await Promise.all([
-            this.getEvmAccount(blockHeader, addressBytes),
-            getBalancesAccount(blockHeader, addressBytes),
-            this.getIdentity(blockHeader, addressBytes),
-        ]);
+        let evmAddr = '';
+        let identity = null;
+        let balances: AccountBalances = {
+            freeBalance: 0n,
+            lockedBalance: 0n,
+            availableBalance: 0n,
+            reservedBalance: 0n,
+            vestingLocked: 0n,
+            votingBalance: 0n,
+            accountNonce: 0,
+        };
+        let evmNonce = 0;
 
-        const addr = evmAddress || '';
-        const evmAddr = addr !== ''
-            ? toChecksumAddress(addr)
-            : addr;
-        const evmNonce = await this.getEvmNonce(blockHeader, addr);
-  
+        if (headReached) {
+            // We start updating mutable data only after the head block has been reached
+            const addressBytes = ss58.decode(address).bytes;
+            let evmAddress;
+            [evmAddress, balances, identity] = await Promise.all([
+                this.getEvmAddress(blockHeader, addressBytes),
+                getBalancesAccount(blockHeader, addressBytes),
+                this.getIdentity(blockHeader, addressBytes),
+            ]);
+
+            const addr = evmAddress || '';
+            evmAddr = addr !== ''
+                ? toChecksumAddress(addr)
+                : addr;
+            // TODO: uncomment this line when evm nonce is available
+            // const evmNonce = await this.getEvmNonce(blockHeader, addr);
+        }
+
         return {
             id: address,
             evmAddress: evmAddr,
@@ -83,7 +102,7 @@ export class AccountManager {
         };
     }
 
-    private async getEvmAccount(blockHeader: SubstrateBlock, address: Uint8Array) {
+    private async getEvmAddress(blockHeader: SubstrateBlock, address: Uint8Array) {
         const storage = new EvmAccountsEvmAddressesStorage(ctx, blockHeader);
 
         if (!storage.isExists) {
@@ -111,7 +130,7 @@ export class AccountManager {
         }
     }
 
-    private async getEvmNonce(blockHeader: SubstrateBlock, evmAddress: string): Promise<number> {
+    private async getEvmNonce(blockHeader: SubstrateBlock, evmAddress: string) {
         if (evmAddress === '') return 0;
 
         const evmAddressBytes = ethers.utils.arrayify(evmAddress);

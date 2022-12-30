@@ -2,11 +2,12 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { ctx } from "../../processor";
 import { BalancesLocksStorage, SystemAccountStorage } from "../../types/storage";
 import { AccountBalances, AccountBalancesBase, AccountBalancesLocked } from "./types";
-import { AccountInfo } from "../../types/v5";
+import { AccountInfo, BalanceLock } from "../../types/v5";
+import { bufferToString } from "../util";
 
 const VESTING_ID = '0x76657374696e6720';
 
-async function getAccountBalancesBase (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesBase> {
+const getAccountBalancesBase = async (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesBase> => {
     const storage = new SystemAccountStorage(ctx, blockHeader);
     if (!storage.isExists || !storage.isV5) {
         return {
@@ -26,7 +27,7 @@ async function getAccountBalancesBase (address: Uint8Array, blockHeader: Substra
     }
 }
 
-async function getLockedData (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesLocked> {
+const getLockedData = async (address: Uint8Array, blockHeader: SubstrateBlock): Promise<AccountBalancesLocked> => {
     let lockedBalance = BigInt(0);
     let vestingLocked = BigInt(0);
 
@@ -35,24 +36,28 @@ async function getLockedData (address: Uint8Array, blockHeader: SubstrateBlock):
         return { lockedBalance, vestingLocked };
     }
 
-    // TODO: get values for lockedBalance and vestingLocked
-    // const locks: BalanceLock[] = await storage.asV5.get(address);
+    const locks: BalanceLock[] = await storage.asV5.get(address);
 
-    // vestingLocked = locks.filter(({ id }) => hexToU8a(id) === VESTING_ID).reduce((result: BN, { amount }) => result.iadd(amount), new BN(0)));
+    vestingLocked = locks.filter(({ id }) => bufferToString(id as Buffer) === VESTING_ID)
+        .reduce((result: bigint, { amount }) => result += amount, BigInt(0));
+    const vestingLocks: BalanceLock[] = locks.filter(({ id }) => bufferToString(id as Buffer) === VESTING_ID);
+    vestingLocks.reduce((result: bigint, { amount }) => result += amount, BigInt(0));
 
-    // // get the maximum of the locks according to https://github.com/paritytech/substrate/blob/master/srml/balances/src/lib.rs#L699
-    // const notAll = locks.filter(({ amount }) => amount && !amount.isMax());
+    // get the maximum of the locks according to https://github.com/paritytech/substrate/blob/master/srml/balances/src/lib.rs#L699
+    const notAll = locks.filter(({ amount }) => amount > BigInt(0));
 
-    // if (notAll.length) {
-    //     lockedBalance = api.registry.createType('Balance', bnMax(...notAll.map(({ amount }): Balance => amount)));
-    // }
+    if (notAll.length) {
+        lockedBalance = BigInt(Math.max(...notAll.map(({ amount }) => Number(amount))));
+    }
 
     return { lockedBalance, vestingLocked };
 }
 
 export const getBalancesAccount = async (blockHeader: SubstrateBlock, address: Uint8Array): Promise<AccountBalances> => {
-    const accountBalancesBase: AccountBalancesBase = await getAccountBalancesBase(address, blockHeader);
-    const accountBalancesLocked: AccountBalancesLocked = await getLockedData(address, blockHeader);
+    const [accountBalancesBase, accountBalancesLocked] = await Promise.all([
+        getAccountBalancesBase(address, blockHeader),
+        getLockedData(address, blockHeader)
+    ]);
 
     return {
         availableBalance:
