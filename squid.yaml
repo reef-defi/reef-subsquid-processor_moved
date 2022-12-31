@@ -12,7 +12,7 @@ deploy:
   processor:
     cmd: [ "node", "lib/processor" ]
   api:
-    cmd: [ "npx", "squid-graphql-server", "--subscriptions"]
+    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--max-response-size", "1000"]
 
 
 #
