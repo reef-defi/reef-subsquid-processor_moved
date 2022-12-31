@@ -28,7 +28,7 @@ const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
-  .setTypesBundle('typesBundle.json') // TODO: remove once the archive registry is updated
+  .setTypesBundle('assets/typesBundle.json') // TODO: remove once the archive registry is updated
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
