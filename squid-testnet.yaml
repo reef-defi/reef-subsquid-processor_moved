@@ -1,8 +1,8 @@
 manifestVersion: subsquid.io/v0.1
-name: reef-explorer
+name: reef-explorer-testnet
 version: 1
 description: |-
-  Reef Chain explorer data
+  Reef Chain testnet explorer data
 
 build:
 
@@ -11,10 +11,16 @@ deploy:
     postgres:
   processor:
     cmd: [ "node", "lib/processor" ]
+    environment:
+      - NETWORK=testnet
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--max-response-size", "1000"]
-
-
+  secrets:
+    - NODE_RPC_WS_MAINNET
+    - NODE_RPC_WS_TESTNET
+    - ARCHIVE_LOOKUP_NAME_MAINNET
+    - ARCHIVE_LOOKUP_NAME_TESTNET
+      
 #
 #deploy:
 #  addons:
