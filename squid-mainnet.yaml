@@ -10,9 +10,10 @@ deploy:
   addons:
     postgres:
   processor:
+    env:
+      NETWORK:
+        mainnet
     cmd: [ "node", "lib/processor" ]
-    environment:
-      NETWORK=mainnet
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--max-response-size", "1000"]
   secrets:
