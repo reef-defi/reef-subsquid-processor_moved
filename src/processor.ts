@@ -19,21 +19,14 @@ import {KnownArchives, lookupArchive} from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
 
-const network = process.env.NETWORK; // ||'testnet';
-// const network = 'testnet';
+const network = process.env.NETWORK;
 if (!network) {
   throw new Error('Network not set in environment.')
 }
-// const RPC_URL = "wss://rpc.reefscan.com/ws";
-// const RPC_URL = "ws://lcd13huvthe4h0g7l9no22oge8.ingress.bdl.computer:32701";
-// const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
-// const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
 
 const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
-// const RPC_URL = 'wss://rpc-testnet.reefscan.com/ws';
-// const AQUARIUM_ARCHIVE_NAME = 'reef-testnet';
 const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
-console.log('NETWORKKKKKKKKKKKKKK=',network, ' RPC=', RPC_URL, ' AQQQQQQ=', AQUARIUM_ARCHIVE_NAME);
+console.log('NETWORK=',network, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, {release: "FireSquid"});
 
 const database = new TypeormDatabase();
