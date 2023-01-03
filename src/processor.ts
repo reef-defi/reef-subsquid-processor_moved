@@ -29,10 +29,10 @@ if (!network) {
 // const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
 // const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
 
-// const RPC_URL = process.env['NODE_RPC_WS_'+network.toUpperCase()];
+// const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
 const RPC_URL = 'wss://rpc-testnet.reefscan.com/ws';
 const AQUARIUM_ARCHIVE_NAME = 'reef-testnet';
-// const AQUARIUM_ARCHIVE_NAME = process.env['ARCHIVE_LOOKUP_NAME_'+network.toUpperCase()] as KnownArchives;
+// const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
 console.log('NETWORKKKKKKKKKKKKKK=',network, ' RPC=', RPC_URL, ' AQQQQQQ=', AQUARIUM_ARCHIVE_NAME);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, {release: "FireSquid"});
 
