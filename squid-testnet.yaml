@@ -11,8 +11,8 @@ deploy:
     postgres:
   processor:
     cmd: [ "node", "lib/processor" ]
-    environment:
-      - NETWORK=testnet
+#    environment:
+#      - NETWORK=testnet
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--max-response-size", "1000"]
   secrets:
