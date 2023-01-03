@@ -10,7 +10,7 @@ deploy:
   addons:
     postgres:
   processor:
-    cmd: [ "node", "lib/processor" ]
+    cmd: ["NETWORK=testnet", "node", "lib/processor" ]
 #    environment:
 #      - NETWORK=testnet
   api:
