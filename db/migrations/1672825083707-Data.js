@@ -1,5 +1,5 @@
-module.exports = class Data1671886389661 {
-    name = 'Data1671886389661'
+module.exports = class Data1672825083707 {
+    name = 'Data1672825083707'
 
     async up(db) {
         await db.query(`CREATE TABLE "chain_info" ("id" character varying NOT NULL, "count" integer NOT NULL, CONSTRAINT "PK_1b82ce2acbc16bfc7f84bfdc8ff" PRIMARY KEY ("id"))`)
@@ -12,7 +12,7 @@ module.exports = class Data1671886389661 {
         await db.query(`CREATE INDEX "IDX_22bbd4c1019b6727a8c0660b87" ON "account" ("evm_address") `)
         await db.query(`CREATE INDEX "IDX_d9c630ee6c2f1bcc56e46bab5a" ON "account" ("block_id") `)
         await db.query(`CREATE INDEX "IDX_07daaf78eea6db5636f187de32" ON "account" ("active") `)
-        await db.query(`CREATE TABLE "contract" ("id" character varying NOT NULL, "bytecode" text NOT NULL, "bytecode_context" text NOT NULL, "bytecode_arguments" text NOT NULL, "gas_limit" integer NOT NULL, "storage_limit" integer NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "extrinsic_id" character varying, "signer_id" character varying, CONSTRAINT "PK_17c3a89f58a2997276084e706e8" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "contract" ("id" character varying NOT NULL, "bytecode" text NOT NULL, "bytecode_context" text NOT NULL, "bytecode_arguments" text NOT NULL, "gas_limit" numeric NOT NULL, "storage_limit" numeric NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "extrinsic_id" character varying, "signer_id" character varying, CONSTRAINT "PK_17c3a89f58a2997276084e706e8" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_5474bf708e87b70509781ed759" ON "contract" ("extrinsic_id") `)
         await db.query(`CREATE INDEX "IDX_c36378dd820dcbc9e74e71fe24" ON "contract" ("signer_id") `)
         await db.query(`CREATE TABLE "extrinsic" ("id" character varying NOT NULL, "index" integer NOT NULL, "hash" text NOT NULL, "args" jsonb NOT NULL, "docs" text NOT NULL, "method" text NOT NULL, "section" text NOT NULL, "signer" text NOT NULL, "status" character varying(7) NOT NULL, "error_message" text, "type" character varying(8) NOT NULL, "signed_data" jsonb, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "block_id" character varying, CONSTRAINT "PK_80d7db0e4b1e83e30336bc76755" PRIMARY KEY ("id"))`)

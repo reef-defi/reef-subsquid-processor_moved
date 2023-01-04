@@ -1,5 +1,5 @@
-module.exports = class Data1671886389662 {
-    name = 'Data1671886389662'
+module.exports = class Data1672825083708 {
+    name = 'Data1672825083708'
 
     async up(db) {
         // Create functions

@@ -82,8 +82,8 @@ type Contract @entity {
   bytecode: String!
   bytecodeContext: String!
   bytecodeArguments: String!
-  gasLimit: Int!
-  storageLimit: Int!
+  gasLimit: BigInt!
+  storageLimit: BigInt!
   timestamp: DateTime!
 }
 
