@@ -53,7 +53,7 @@ export const processErc1155BatchTransfer = async (
 
     for (let i = 0; i < ids.length; i++) {
         transfersData.push({
-            id: eventRaw.id,
+            id: `${eventRaw.id}-${i}`,
             blockId: blockHeader.id,
             extrinsicId: eventRaw.extrinsic.id,
             toAddress: toAddress,
