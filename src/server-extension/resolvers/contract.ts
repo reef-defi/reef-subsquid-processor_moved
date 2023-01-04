@@ -21,6 +21,9 @@ export class ContractEntity {
   args!: JSON;
 
   @Field(() => String, { nullable: true })
+  name!: string;
+
+  @Field(() => String, { nullable: true })
   filename!: string;
 
   constructor(props: Partial<ContractEntity>) {
