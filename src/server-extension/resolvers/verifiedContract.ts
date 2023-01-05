@@ -1,6 +1,6 @@
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
-import { VerifiedContract } from '../../model';
+import { ContractType, VerifiedContract } from '../../model';
 
 @Resolver()
 export class VerifiedContractResolver {
@@ -16,6 +16,7 @@ export class VerifiedContractResolver {
     @Arg('args') args: string,
     @Arg('runs') runs: number,
     @Arg('target') target: string,
+    @Arg('type') type: string,
     @Arg('compiledData') compiledData: string,
     @Arg('contractData') contractData: string,
     @Arg('timestamp') timestamp: number,
@@ -32,6 +33,7 @@ export class VerifiedContractResolver {
       args: JSON.parse(args),
       runs,
       target,
+      type: type as ContractType,
       compiledData: JSON.parse(compiledData),
       contractData: JSON.parse(contractData),
       timestamp: new Date(timestamp)

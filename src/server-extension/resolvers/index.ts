@@ -4,6 +4,7 @@ import type { EntityManager } from 'typeorm'
 import { VerificationRequestResolver } from "./verificationRequest";
 import { VerifiedContractResolver } from "./verifiedContract";
 import { ContractResolver } from "./contract";
+import { TokenHolderResolver } from "./tokenHolder";
 
 @ObjectType()
 export class Ping {
@@ -26,5 +27,6 @@ export class PingResolver {
 export {
   VerificationRequestResolver,
   VerifiedContractResolver,
-  ContractResolver
+  ContractResolver,
+  TokenHolderResolver
 }
