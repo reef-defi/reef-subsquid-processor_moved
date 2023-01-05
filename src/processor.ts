@@ -88,7 +88,7 @@ processor.run(database, async (ctx_) => {
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager, ctx.store);
             break;
           case 'EVM.Created':
-            contractManager.process(eventRaw, block.header);
+            await contractManager.process(eventRaw, block.header);
             break;
           case 'EVM.ExecutedFailed':
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager);
