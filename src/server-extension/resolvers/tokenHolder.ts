@@ -49,10 +49,7 @@ export class TokenHolderResolver {
 
     const signerIds = tokenHolders.map((tokenHolder) => tokenHolder.signerId)
       .filter((id, index, self) => id && self.indexOf(id) === index);
-    let signers: Account[] = [];
-    if (signerIds.length) {
-      signers = await manager.findBy(Account, { id: In(signerIds) });
-    }
+    const signers: Account[] = await manager.findBy(Account, { id: In(signerIds) });
     
     const entities: TokenHolder[] = tokenHolders.map((tokenHolder) => {
       const token = tokens.find((t) => t.id === tokenHolder.tokenId);
@@ -76,35 +73,6 @@ export class TokenHolderResolver {
     });
 
     await manager.save(entities);
-    return true;
-  }
-
-  @Mutation(() => Boolean) async saveTokenHolder(
-    @Arg('tokenHolder') tokenHolder: TokenHolderInput,
-  ): Promise<Boolean> {
-    const manager = await this.tx();
-    
-    const token = await manager.findOneBy(VerifiedContract, { id: tokenHolder.tokenId });
-    if (!token) throw new Error(`Token ${tokenHolder.tokenId} not found`);
-
-    let signer: Account | undefined = undefined;
-    if (tokenHolder.signerId) {
-      const signerFound = await manager.findOneBy(Account, { id: tokenHolder.signerId });
-      if (signerFound) signer = signerFound;
-    }
-
-    const entity = new TokenHolder({
-      id: tokenHolder.id,
-      evmAddress: tokenHolder.evmAddress,
-      nftId: tokenHolder.nftId,
-      type: tokenHolder.type as TokenHolderType,
-      balance: tokenHolder.balance,
-      token,
-      signer,
-      timestamp: new Date(Number(tokenHolder.timestamp))
-    });
-
-    await manager.save(entity);
     return true;
   }
 }

@@ -42,7 +42,7 @@ make migrate (npx squid-typeorm-migration apply)
 - Start processor
 make process (node -r dotenv/config lib/processor.js)
 
-- Start API gateway (http://localhost:4350)
+- Start API gateway (http://localhost:4350/graphql)
 make serve (npx squid-graphql-server --subscriptions)
 
 ## Stop

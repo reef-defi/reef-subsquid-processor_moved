@@ -5,6 +5,8 @@ import { VerificationRequestResolver } from "./verificationRequest";
 import { VerifiedContractResolver } from "./verifiedContract";
 import { ContractResolver } from "./contract";
 import { TokenHolderResolver } from "./tokenHolder";
+import { TransferResolver } from "./transfer";
+import { EvmEventResolver } from "./evmEvent";
 
 @ObjectType()
 export class Ping {
@@ -28,5 +30,7 @@ export {
   VerificationRequestResolver,
   VerifiedContractResolver,
   ContractResolver,
-  TokenHolderResolver
+  TokenHolderResolver,
+  TransferResolver,
+  EvmEventResolver
 }
