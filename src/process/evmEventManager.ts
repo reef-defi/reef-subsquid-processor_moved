@@ -28,6 +28,10 @@ export class EvmEventManager {
 
         if (method === 'Log') {
             status = EvmEventStatus.Success;
+            topic0 = eventRaw.args.topics[0] || null;
+            topic1 = eventRaw.args.topics[1] || null;
+            topic2 = eventRaw.args.topics[2] || null;
+            topic3 = eventRaw.args.topics[3] || null;
             contractAddress = toChecksumAddress(eventRaw.args.address);
             const contract = await store!.get(VerifiedContract, contractAddress);
             if (contract) {
@@ -36,10 +40,6 @@ export class EvmEventManager {
                 const data = eventRaw.args.data;
                 dataParsed = iface.parseLog({ topics, data });
                 type = EvmEventType.Verified;
-                topic0 = eventRaw.args.topics[0] || null;
-                topic1 = eventRaw.args.topics[1] || null;
-                topic2 = eventRaw.args.topics[2] || null;
-                topic3 = eventRaw.args.topics[3] || null;
                 await transferManager.process(eventRaw, blockHeader, accountManager, contract);
             }
         } else if (method === 'ExecutedFailed') {
