@@ -1,4 +1,5 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import * as marshal from "./marshal"
 import {Extrinsic} from "./extrinsic.model"
 import {Account} from "./account.model"
 
@@ -31,11 +32,11 @@ export class Contract {
     @Column_("text", {nullable: false})
     bytecodeArguments!: string
 
-    @Column_("int4", {nullable: false})
-    gasLimit!: number
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    gasLimit!: bigint
 
-    @Column_("int4", {nullable: false})
-    storageLimit!: number
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    storageLimit!: bigint
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date

@@ -7,12 +7,22 @@ import { hexToNativeAddress, toChecksumAddress } from "../util/util";
 export class ContractManager {  
     contractsData: ContractData[] = [];
   
-    process(eventRaw: EventRaw, blockHeader: SubstrateBlock) {
-        const bytecode = eventRaw.call!.args.init;
-        const { context, args } = this.preprocessBytecode(bytecode);
+    async process(eventRaw: EventRaw, blockHeader: SubstrateBlock) {
+        // TODO: manage created by another contract
+        if (eventRaw.call?.name !== 'EVM.create') return;
+
         const address = typeof eventRaw.args === 'string'
-            ? eventRaw.args // v8
-            : eventRaw.args[1]; // v9
+            ? toChecksumAddress(eventRaw.args) // v8
+            : toChecksumAddress(eventRaw.args[1]); // v9
+
+        // TODO: check why we are getting duplicates and fix it
+        if (this.contractsData.find(c => c.id === address)) return;
+        const existingContract = await ctx.store.get(Contract, address);
+        if (existingContract) return;
+        /////////////////////////////////////////////
+
+        const bytecode = eventRaw.call.args.init;
+        const { context, args } = this.preprocessBytecode(bytecode);
     
         const contractData = {
             id: toChecksumAddress(address),

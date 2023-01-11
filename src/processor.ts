@@ -15,20 +15,25 @@ import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
 import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
-import { lookupArchive } from "@subsquid/archive-registry";
+import {KnownArchives, lookupArchive} from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
 
-const RPC_URL = "wss://rpc.reefscan.com/ws";
-// const RPC_URL = "ws://lcd13huvthe4h0g7l9no22oge8.ingress.bdl.computer:32701";
-const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
-// const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
+const network = process.env.NETWORK;
+if (!network) {
+  throw new Error('Network not set in environment.')
+}
+
+const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
+const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
+console.log('NETWORK=',network, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME);
+const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, {release: "FireSquid"});
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: 0 })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
-  .setTypesBundle('typesBundle.json') // TODO: remove once the archive registry is updated
+  .setTypesBundle('assets/typesBundle.json') // TODO: remove once the archive registry is updated
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
@@ -83,7 +88,7 @@ processor.run(database, async (ctx_) => {
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager, ctx.store);
             break;
           case 'EVM.Created':
-            contractManager.process(eventRaw, block.header);
+            await contractManager.process(eventRaw, block.header);
             break;
           case 'EVM.ExecutedFailed':
             await evmEventManager.process(eventRaw, block.header, transferManager, accountManager);

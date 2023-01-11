@@ -56,8 +56,8 @@ export interface ContractData {
     bytecode: string;
     bytecodeContext: string;
     bytecodeArguments: string;
-    gasLimit: number;
-    storageLimit: number;
+    gasLimit: bigint;
+    storageLimit: bigint;
     timestamp: Date;
 }
 
