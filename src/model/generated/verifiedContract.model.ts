@@ -1,4 +1,5 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Contract} from "./contract.model"
 import {ContractType} from "./_contractType"
 
 @Entity_()
@@ -12,6 +13,10 @@ export class VerifiedContract {
      */
     @PrimaryColumn_()
     id!: string
+
+    @Index_()
+    @ManyToOne_(() => Contract, {nullable: true})
+    contract!: Contract
 
     @Index_()
     @Column_("text", {nullable: false})

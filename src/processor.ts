@@ -19,8 +19,8 @@ import { lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
 
-// const RPC_URL = "wss://rpc.reefscan.com/ws";
-const RPC_URL = "ws://lcd13huvthe4h0g7l9no22oge8.ingress.bdl.computer:32701";
+const RPC_URL = "wss://rpc.reefscan.com/ws";
+// const RPC_URL = "ws://lcd13huvthe4h0g7l9no22oge8.ingress.bdl.computer:32701";
 const ARCHIVE = lookupArchive('reef', {release: "FireSquid"}); // Aquarium archive
 // const ARCHIVE = "http://localhost:8888/graphql"; // Local archive
 

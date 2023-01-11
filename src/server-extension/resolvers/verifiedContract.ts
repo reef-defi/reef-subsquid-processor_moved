@@ -1,6 +1,6 @@
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
-import { ContractType, VerifiedContract } from '../../model';
+import { Contract, ContractType, VerifiedContract } from '../../model';
 
 @Resolver()
 export class VerifiedContractResolver {
@@ -22,9 +22,16 @@ export class VerifiedContractResolver {
     @Arg('timestamp') timestamp: number,
   ): Promise<Boolean> {
     const manager = await this.tx();
+
+    const contract = await manager.findOneBy(Contract, { id: id });
+    if (!contract) {
+      console.log(`Error inserting verified contract ${id}: contract not found in DB.`);
+      return false;
+    }
     
     const verifiedContract = new VerifiedContract({
       id,
+      contract,
       name,
       filename,
       source: JSON.parse(source),

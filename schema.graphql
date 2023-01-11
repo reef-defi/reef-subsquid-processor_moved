@@ -164,6 +164,7 @@ type VerificationRequest @entity {
 type VerifiedContract @entity {
   "Address"
   id: ID!
+  contract: Contract!
   name: String! @index
   filename: String @index
   source: JSON!
