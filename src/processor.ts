@@ -43,7 +43,7 @@ export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
 export let headReached = false;
 
-// Avoid typeerrors when serializing BigInts
+// Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 processor.run(database, async (ctx_) => {

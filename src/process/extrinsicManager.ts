@@ -14,8 +14,8 @@ export class ExtrinsicManager {
         if (extrinsicRaw.signature?.address?.value) {
             signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
             // TODO: get fee and fee details
-            // rpc.payment.queryInfo(extrinsicRaw.hash);
-            // rpc.payment.queryFeeDetails(extrinsicRaw.hash);
+            // rpc.payment.queryInfo(hash);
+            // rpc.payment.queryFeeDetails(hash);
         }
 
         const extrinsicData = {
@@ -29,7 +29,7 @@ export class ExtrinsicManager {
             section: extrinsicRaw.call.name.split(".")[0],
             signer: signer || "",
             status: extrinsicRaw.success ? ExtrinsicStatus.success : ExtrinsicStatus.error,
-            errorMessage: extrinsicRaw.error || "",
+            errorMessage: extrinsicRaw.error || "", // TODO: decode error
             type: signer ? ExtrinsicType.signed : ExtrinsicType.unsigned,
             signedData: null, // TODO,
             timestamp: new Date(blockHeader.timestamp),

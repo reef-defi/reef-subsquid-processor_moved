@@ -1,5 +1,5 @@
-module.exports = class Data1673440489500 {
-    name = 'Data1673440489500'
+module.exports = class Data1673507629523 {
+    name = 'Data1673507629523'
 
     async up(db) {
         await db.query(`CREATE TABLE "chain_info" ("id" character varying NOT NULL, "count" integer NOT NULL, CONSTRAINT "PK_1b82ce2acbc16bfc7f84bfdc8ff" PRIMARY KEY ("id"))`)
@@ -17,13 +17,13 @@ module.exports = class Data1673440489500 {
         await db.query(`CREATE INDEX "IDX_c36378dd820dcbc9e74e71fe24" ON "contract" ("signer_id") `)
         await db.query(`CREATE TABLE "extrinsic" ("id" character varying NOT NULL, "index" integer NOT NULL, "hash" text NOT NULL, "args" jsonb NOT NULL, "docs" text NOT NULL, "method" text NOT NULL, "section" text NOT NULL, "signer" text NOT NULL, "status" character varying(7) NOT NULL, "error_message" text, "type" character varying(8) NOT NULL, "signed_data" jsonb, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "block_id" character varying, CONSTRAINT "PK_80d7db0e4b1e83e30336bc76755" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_a3b99daba1259dab0dd040d4f7" ON "extrinsic" ("block_id") `)
-        await db.query(`CREATE INDEX "IDX_1f45de0713a55049009e8e8127" ON "extrinsic" ("hash") `)
+        await db.query(`CREATE UNIQUE INDEX "IDX_1f45de0713a55049009e8e8127" ON "extrinsic" ("hash") `)
         await db.query(`CREATE INDEX "IDX_fee06ac3db4d6eaeab04d0e5eb" ON "extrinsic" ("method") `)
         await db.query(`CREATE INDEX "IDX_f27ce26722a5bff4dad664d4cb" ON "extrinsic" ("section") `)
         await db.query(`CREATE INDEX "IDX_001ddf290faf765f9dfd9154d3" ON "extrinsic" ("signer") `)
         await db.query(`CREATE TABLE "block" ("id" character varying NOT NULL, "height" integer NOT NULL, "hash" text NOT NULL, "author" text NOT NULL, "state_root" text NOT NULL, "parent_hash" text NOT NULL, "extrinsic_root" text NOT NULL, "finalized" boolean NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "processor_timestamp" TIMESTAMP WITH TIME ZONE, CONSTRAINT "PK_d0925763efb591c2e2ffb267572" PRIMARY KEY ("id"))`)
-        await db.query(`CREATE INDEX "IDX_bce676e2b005104ccb768495db" ON "block" ("height") `)
-        await db.query(`CREATE INDEX "IDX_f8fba63d7965bfee9f304c487a" ON "block" ("hash") `)
+        await db.query(`CREATE UNIQUE INDEX "IDX_bce676e2b005104ccb768495db" ON "block" ("height") `)
+        await db.query(`CREATE UNIQUE INDEX "IDX_f8fba63d7965bfee9f304c487a" ON "block" ("hash") `)
         await db.query(`CREATE INDEX "IDX_97862dcc0742e14c96127c78b1" ON "block" ("finalized") `)
         await db.query(`CREATE TABLE "evm_event" ("id" character varying NOT NULL, "event_index" integer NOT NULL, "extrinsic_index" integer NOT NULL, "contract_address" text NOT NULL, "data_raw" jsonb NOT NULL, "data_parsed" jsonb NOT NULL, "method" text NOT NULL, "type" character varying(10) NOT NULL, "status" character varying(7) NOT NULL, "topic0" text, "topic1" text, "topic2" text, "topic3" text, "event_id" character varying, "block_id" character varying, CONSTRAINT "PK_44bf1b82a2d71af8a303f7cb835" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_7d98b97b55aff4e00bb6e158d2" ON "evm_event" ("event_id") `)

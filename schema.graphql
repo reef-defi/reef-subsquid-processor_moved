@@ -7,8 +7,8 @@ type ChainInfo @entity {
 type Block @entity {
   "000000..00<blockNum>-<shorthash>"
   id: ID!
-  height: Int! @index
-  hash: String! @index
+  height: Int! @index @unique
+  hash: String! @index @unique
   author: String!
   stateRoot: String!
   parentHash: String!
@@ -26,7 +26,7 @@ type Extrinsic @entity {
   id: ID!
   block: Block!
   index: Int!
-  hash: String! @index
+  hash: String! @index @unique
   args: JSON!
   docs: String!
   method: String! @index
