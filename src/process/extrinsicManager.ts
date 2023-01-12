@@ -13,9 +13,9 @@ export class ExtrinsicManager {
         let signer = null;
         if (extrinsicRaw.signature?.address?.value) {
             signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
-            // TODO: get fee and fee details
-            // rpc.payment.queryInfo(hash);
-            // rpc.payment.queryFeeDetails(hash);
+            // TODO: get fee and fee details,
+            // const info = await ctx._chain.client.call('payment_queryInfo', [hash]);
+            // const feeDetails = await ctx._chain.client.call('payment_queryFeeDetails', [hash]);
         }
 
         const extrinsicData = {
@@ -43,7 +43,10 @@ export class ExtrinsicManager {
         
         this.extrinsicsData.forEach(extrinsicData => {
             const block = blocks.get(extrinsicData.blockId);
-            if (!block) throw new Error(`Block ${extrinsicData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving extrinsic: Block ${extrinsicData.blockId} not found`);
+                return;
+            }
             
             extrinsics.set(extrinsicData.id, new Extrinsic ({
                 ...extrinsicData,

@@ -49,11 +49,17 @@ export class ContractManager {
             if (!signer) {
                 // If not found, query the database
                 signer = await ctx.store.get(Account, contractData.signerAddress);
-                if (!signer) throw new Error(`Account ${contractData.signerAddress} not found`); // TODO: handle this error
+                if (!signer) {
+                    ctx.log.error(`ERROR saving contract: Account ${contractData.signerAddress} not found`);
+                    continue
+                }
             }
     
             const extrinsic = extrinsics.get(contractData.extrinsicId);
-            if (!extrinsic) throw new Error(`Extrinsic ${contractData.extrinsicId} not found`); // TODO: handle this error
+            if (!extrinsic) {
+                ctx.log.error(`ERROR saving contract: Extrinsic ${contractData.extrinsicId} not found`);
+                continue;
+            }
             
             contracts.push(new Contract ({
                 ...contractData,

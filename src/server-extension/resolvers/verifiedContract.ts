@@ -25,7 +25,7 @@ export class VerifiedContractResolver {
 
     const contract = await manager.findOneBy(Contract, { id: id });
     if (!contract) {
-      console.log(`Error inserting verified contract ${id}: contract not found in DB.`);
+      console.log(`ERROR inserting verified contract ${id}: contract not found in DB.`);
       return false;
     }
     

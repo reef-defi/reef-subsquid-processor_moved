@@ -74,17 +74,22 @@ export class EvmEventManager {
     async save(blocks: Map<string, Block>, events: Map<string, Event>) {
         const evmLogEvents: EvmEvent[] = this.evmEventsData.map(evmLogEventData => {
             const block = blocks.get(evmLogEventData.blockId);
-            if (!block) throw new Error(`Block ${evmLogEventData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving evm event: Block ${evmLogEventData.blockId} not found`);
+            }
     
             const event = events.get(evmLogEventData.id);
-            if (!event) throw new Error(`Event ${evmLogEventData.id} not found`); // TODO: handle this error
+            if (!event) {
+                ctx.log.error(`ERROR saving evm event: Event ${evmLogEventData.id} not found`);
+            }
             
             return new EvmEvent({
                 ...evmLogEventData,
                 block: block,
                 event: event
             });
-        });
+        })
+        .filter(e => e.block && e.event);
     
         await ctx.store.insert(evmLogEvents);
     }

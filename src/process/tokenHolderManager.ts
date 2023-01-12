@@ -41,7 +41,10 @@ export class TokenHolderManager {
                 if (!signer) {
                     // If not found, query the database
                     signer = await ctx.store.get(Account, tokenHolderData.signerAddress);
-                    if (!signer) throw new Error(`Account ${tokenHolderData.signerAddress} not found`); // TODO: handle this error
+                    if (!signer) {
+                        ctx.log.error(`ERROR saving token holder: Account ${tokenHolderData.signerAddress} not found`);
+                        continue;
+                    }
                 }
             }
     
