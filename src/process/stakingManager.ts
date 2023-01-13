@@ -44,11 +44,17 @@ export class StakingManager {
             if (!signer) {
                 // If not found, query the database
                 signer = await ctx.store.get(Account, stakingData.signerAddress);
-                if (!signer) throw new Error(`Account ${stakingData.signerAddress} not found`); // TODO: handle this error
+                if (!signer) {
+                    ctx.log.error(`ERROR saving staking: Account ${stakingData.signerAddress} not found`);
+                    continue;
+                }
             }
     
             const event = events.get(stakingData.id);
-            if (!event) throw new Error(`Event ${stakingData.id} not found`); // TODO: handle this error
+            if (!event) {
+                ctx.log.error(`ERROR saving staking: Event ${stakingData.id} not found`);
+                continue;
+            }
             
             stakings.push(new Staking ({
                 ...stakingData,

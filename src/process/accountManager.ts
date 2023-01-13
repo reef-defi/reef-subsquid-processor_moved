@@ -39,7 +39,10 @@ export class AccountManager {
 
         this.accountsData.forEach(accountData => {
             const block = blocks.get(accountData.blockId);
-            if (!block) throw new Error(`Block ${accountData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving account: Block ${accountData.blockId} not found`);
+                return;
+            }
             
             accounts.set(accountData.id, new Account ({
                 ...accountData,
@@ -123,6 +126,7 @@ export class AccountManager {
         if (!storage.isExists) return undefined;
         
         if (storage.isV5) {
+            // TODO: format result (https://github.com/polkadot-js/api/blob/v6.4.2/packages/api-derive/src/accounts/identity.ts)
             return storage.asV5.get(address);
         } else {
             throw new Error("Unknown storage version");

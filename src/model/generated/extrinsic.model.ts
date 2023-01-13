@@ -24,7 +24,7 @@ export class Extrinsic {
     @Column_("int4", {nullable: false})
     index!: number
 
-    @Index_()
+    @Index_({unique: true})
     @Column_("text", {nullable: false})
     hash!: string
 

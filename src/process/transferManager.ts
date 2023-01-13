@@ -64,17 +64,26 @@ export class TransferManager {
         // TODO: process in parallel
         for (const transferData of this.transfersData) {
             const block = blocks.get(transferData.blockId);
-            if (!block) throw new Error(`Block ${transferData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving transfer: Block ${transferData.blockId} not found`);
+                continue;
+            } 
 
             const extrinsic = extrinsics.get(transferData.extrinsicId);
-            if (!extrinsic) throw new Error(`Extrinsic ${transferData.extrinsicId} not found`); // TODO: handle this error
+            if (!extrinsic) {
+                ctx.log.error(`ERROR saving transfer: Extrinsic ${transferData.extrinsicId} not found`);
+                continue;
+            } 
             
             // Search to account in cached accounts
             let to = accounts.get(transferData.toAddress);
             if (!to) {
                 // If not found, query the database
                 to = await ctx.store.get(Account, transferData.toAddress);
-                if (!to) throw new Error(`Account ${transferData.toAddress} not found`); // TODO: handle this error
+                if (!to) {
+                    ctx.log.error(`ERROR saving transfer: Account ${transferData.toAddress} not found`);
+                    continue;
+                }
             }
 
             // Search from account in cached accounts
@@ -82,7 +91,10 @@ export class TransferManager {
             if (!from) {
                 // If not found, query the database
                 from = await ctx.store.get(Account, transferData.fromAddress);
-                if (!from) throw new Error(`Account ${transferData.fromAddress} not found`); // TODO: handle this error
+                if (!from) {
+                    ctx.log.error(`ERROR saving transfer: Account ${transferData.fromAddress} not found`);
+                    continue;
+                } 
             }
 
             transfers.push(

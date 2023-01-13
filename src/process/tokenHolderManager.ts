@@ -19,7 +19,7 @@ export class TokenHolderManager {
             id: `${token.id}-${holderIsContract ? evmAddress : address}${nftId ? `-${nftId}` : ''}`,
             token: token,
             signerAddress: holderIsContract ? '' : address,
-            evmAddress: holderIsContract ? evmAddress : '', // TODO: what if is an account with evm address claimed?
+            evmAddress: holderIsContract ? evmAddress : '',
             nftId: nftId ? BigInt(nftId) : null,
             type: holderIsContract ? TokenHolderType.Contract : TokenHolderType.Account,
             balance: balance,
@@ -41,7 +41,10 @@ export class TokenHolderManager {
                 if (!signer) {
                     // If not found, query the database
                     signer = await ctx.store.get(Account, tokenHolderData.signerAddress);
-                    if (!signer) throw new Error(`Account ${tokenHolderData.signerAddress} not found`); // TODO: handle this error
+                    if (!signer) {
+                        ctx.log.error(`ERROR saving token holder: Account ${tokenHolderData.signerAddress} not found`);
+                        continue;
+                    }
                 }
             }
     

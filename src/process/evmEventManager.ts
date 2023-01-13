@@ -28,6 +28,10 @@ export class EvmEventManager {
 
         if (method === 'Log') {
             status = EvmEventStatus.Success;
+            topic0 = eventRaw.args.topics[0] || null;
+            topic1 = eventRaw.args.topics[1] || null;
+            topic2 = eventRaw.args.topics[2] || null;
+            topic3 = eventRaw.args.topics[3] || null;
             contractAddress = toChecksumAddress(eventRaw.args.address);
             const contract = await store!.get(VerifiedContract, contractAddress);
             if (contract) {
@@ -36,10 +40,6 @@ export class EvmEventManager {
                 const data = eventRaw.args.data;
                 dataParsed = iface.parseLog({ topics, data });
                 type = EvmEventType.Verified;
-                topic0 = eventRaw.args.topics[0] || null;
-                topic1 = eventRaw.args.topics[1] || null;
-                topic2 = eventRaw.args.topics[2] || null;
-                topic3 = eventRaw.args.topics[3] || null;
                 await transferManager.process(eventRaw, blockHeader, accountManager, contract);
             }
         } else if (method === 'ExecutedFailed') {
@@ -74,17 +74,22 @@ export class EvmEventManager {
     async save(blocks: Map<string, Block>, events: Map<string, Event>) {
         const evmLogEvents: EvmEvent[] = this.evmEventsData.map(evmLogEventData => {
             const block = blocks.get(evmLogEventData.blockId);
-            if (!block) throw new Error(`Block ${evmLogEventData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving evm event: Block ${evmLogEventData.blockId} not found`);
+            }
     
             const event = events.get(evmLogEventData.id);
-            if (!event) throw new Error(`Event ${evmLogEventData.id} not found`); // TODO: handle this error
+            if (!event) {
+                ctx.log.error(`ERROR saving evm event: Event ${evmLogEventData.id} not found`);
+            }
             
             return new EvmEvent({
                 ...evmLogEventData,
                 block: block,
                 event: event
             });
-        });
+        })
+        .filter(e => e.block && e.event);
     
         await ctx.store.insert(evmLogEvents);
     }

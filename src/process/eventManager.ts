@@ -27,10 +27,16 @@ export class EventManager {
         const events: Map<string, Event> = new Map();
         this.eventsData.forEach(eventData => {
             const block = blocks.get(eventData.blockId);
-            if (!block) throw new Error(`Block ${eventData.blockId} not found`); // TODO: handle this error
+            if (!block) {
+                ctx.log.error(`ERROR saving event: Block ${eventData.blockId} not found`);
+                return;
+            }
     
             const extrinsic = extrinsics.get(eventData.extrinsicId);
-            if (!extrinsic) throw new Error(`Extrinsic ${eventData.extrinsicId} not found`); // TODO: handle this error
+            if (!extrinsic) {
+                ctx.log.error(`ERROR saving event: Extrinsic ${eventData.extrinsicId} not found`);
+                return;
+            }
             
             events.set(eventData.id, new Event({
                 ...eventData,

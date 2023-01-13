@@ -1,4 +1,4 @@
-import typeorm_store_1, { Store, TypeormDatabase } from "@subsquid/typeorm-store";
+import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
 import {
   BatchContext,
   BatchProcessorItem,
@@ -28,10 +28,11 @@ const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
 const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
 console.log('NETWORK=',network, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, {release: "FireSquid"});
+const START_BLOCK = parseInt(process.env.START_BLOCK || '0');
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange({ from: 0 })
+  .setBlockRange({ from: START_BLOCK })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
   .setTypesBundle('assets/typesBundle.json') // TODO: remove once the archive registry is updated
   .addEvent("*")
@@ -43,7 +44,7 @@ export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
 export let headReached = false;
 
-// Avoid typeerrors when serializing BigInts
+// Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 processor.run(database, async (ctx_) => {

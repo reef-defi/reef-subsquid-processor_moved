@@ -15,11 +15,11 @@ export class Block {
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
+    @Index_({unique: true})
     @Column_("int4", {nullable: false})
     height!: number
 
-    @Index_()
+    @Index_({unique: true})
     @Column_("text", {nullable: false})
     hash!: string
 
