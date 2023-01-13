@@ -117,6 +117,7 @@ const getIdentities = async (blockHeader: SubstrateBlock, addresses: Uint8Array[
     if (!storage.isExists) return undefined;
     
     if (storage.isV5) {
+        // TODO: format reponses (https://github.com/polkadot-js/api/blob/v6.4.2/packages/api-derive/src/accounts/identity.ts)
         return storage.asV5.getMany(addresses);
     } else {
         throw new Error("Unknown storage version");

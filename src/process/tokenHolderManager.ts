@@ -19,7 +19,7 @@ export class TokenHolderManager {
             id: `${token.id}-${holderIsContract ? evmAddress : address}${nftId ? `-${nftId}` : ''}`,
             token: token,
             signerAddress: holderIsContract ? '' : address,
-            evmAddress: holderIsContract ? evmAddress : '', // TODO: what if is an account with evm address claimed?
+            evmAddress: holderIsContract ? evmAddress : '',
             nftId: nftId ? BigInt(nftId) : null,
             type: holderIsContract ? TokenHolderType.Contract : TokenHolderType.Account,
             balance: balance,
