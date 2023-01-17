@@ -15,11 +15,10 @@ export class ContractManager {
             ? toChecksumAddress(eventRaw.args) // v8
             : toChecksumAddress(eventRaw.args[1]); // v9
 
-        // TODO: check why we are getting duplicates and fix it
+        // TODO: check why we are getting duplicates
         if (this.contractsData.find(c => c.id === address)) return;
         const existingContract = await ctx.store.get(Contract, address);
         if (existingContract) return;
-        /////////////////////////////////////////////
 
         const bytecode = eventRaw.call.args.init;
         const { context, args } = this.preprocessBytecode(bytecode);

@@ -27,14 +27,13 @@ if (!network) {
 const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
 const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
 console.log('NETWORK=',network, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME);
-const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, {release: "FireSquid"});
+const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
 const START_BLOCK = parseInt(process.env.START_BLOCK || '0');
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: START_BLOCK })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
-  .setTypesBundle('assets/typesBundle.json') // TODO: remove once the archive registry is updated
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
@@ -42,7 +41,7 @@ export type Item = BatchProcessorItem<typeof processor>;
 export type Context = BatchContext<Store, Item>;
 export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
-export let headReached = false;
+export let headReached = process.env.HEAD_REACHED === 'true';
 
 // Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
