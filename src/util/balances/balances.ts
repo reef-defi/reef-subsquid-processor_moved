@@ -58,7 +58,7 @@ const getLockedData = async (address: Uint8Array, blockHeader: SubstrateBlock): 
     const notAll = locks.filter(({ amount }) => amount > BigInt(0));
 
     if (notAll.length) {
-        lockedBalance = BigInt(Math.max(...notAll.map(({ amount }) => Number(amount))));
+        lockedBalance = notAll.map(({ amount }) => amount).reduce((a, b) => BigInt(a) > BigInt(b) ? a : b);
     }
 
     return { lockedBalance, vestingLocked };
