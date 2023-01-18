@@ -36,10 +36,10 @@ type Extrinsic @entity {
   errorMessage: String
   type: ExtrinsicType!
   signedData: JSON
-  timestamp: DateTime!
+  timestamp: DateTime! @index
   events: [Event!] @derivedFrom(field: "extrinsic")
   contracts: [Contract!] @derivedFrom(field: "extrinsic") 
-  # A extrinsic can have only one contract, it is required to use an array for the precompiled contracts, that reference the same virtual extrinsic with id -1.
+  # An extrinsic can have only one contract, it is required to use an array for the precompiled contracts, that reference the same virtual extrinsic with id -1.
 }
 
 type Event @entity {
@@ -47,7 +47,7 @@ type Event @entity {
   id: ID!
   extrinsic: Extrinsic!
   block: Block!
-  index: Int!
+  index: Int! @index
   phase: String!
   section: String! @index
   method: String! @index
@@ -62,7 +62,7 @@ type Account @entity {
   block: Block!
   identity: JSON
   active: Boolean! @index
-  freeBalance: BigInt!
+  freeBalance: BigInt! @index
   lockedBalance: BigInt!
   availableBalance: BigInt!
   reservedBalance: BigInt!
@@ -124,7 +124,7 @@ type Transfer @entity {
   nftId: BigInt @index
   errorMessage: String
   success: Boolean! @index
-  timestamp: DateTime!
+  timestamp: DateTime! @index
 }
 
 type TokenHolder @entity @index(fields: ["token", "signer", "nftId"], unique: true) {
@@ -176,7 +176,7 @@ type VerifiedContract @entity {
   target: String!
   type: ContractType @index
   contractData: JSON
-  timestamp: DateTime
+  timestamp: DateTime @index
 }
 
 # ===================== Staking ===========================
