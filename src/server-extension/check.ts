@@ -28,7 +28,10 @@ interface RequestCheckContext {
 export async function requestCheck(req: RequestCheckContext): Promise<boolean | string> {
   // Mutation requests are protected by JWT
   if (req.operation.operation === 'mutation') {
-    return mutationAuthChecker(req.http);
+    if (!mutationAuthChecker(req.http)) {
+      console.log('Unauthorized mutation request');
+      return false;
+    }
   }
   return true;
 }
