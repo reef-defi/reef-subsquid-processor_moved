@@ -69,6 +69,7 @@ export class Transfer {
     @Column_("bool", {nullable: false})
     success!: boolean
 
+    @Index_()
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 }

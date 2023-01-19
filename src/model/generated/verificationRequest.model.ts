@@ -45,6 +45,9 @@ export class VerificationRequest {
     @Column_("text", {nullable: true})
     message!: string | undefined | null
 
+    @Column_("text", {nullable: true})
+    license!: string | undefined | null
+
     @Column_("timestamp with time zone", {nullable: true})
     timestamp!: Date | undefined | null
 }

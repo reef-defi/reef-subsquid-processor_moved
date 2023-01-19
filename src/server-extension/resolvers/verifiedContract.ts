@@ -19,6 +19,7 @@ export class VerifiedContractResolver {
     @Arg('type') type: string,
     @Arg('compiledData') compiledData: string,
     @Arg('contractData') contractData: string,
+    @Arg('license') license: string,
     @Arg('timestamp') timestamp: number,
   ): Promise<Boolean> {
     const manager = await this.tx();
@@ -43,6 +44,7 @@ export class VerifiedContractResolver {
       type: type as ContractType,
       compiledData: JSON.parse(compiledData),
       contractData: JSON.parse(contractData),
+      license,
       timestamp: new Date(timestamp)
     });
 
