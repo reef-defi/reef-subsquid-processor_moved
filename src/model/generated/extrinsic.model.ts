@@ -58,6 +58,7 @@ export class Extrinsic {
     @Column_("jsonb", {nullable: true})
     signedData!: unknown | undefined | null
 
+    @Index_()
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 

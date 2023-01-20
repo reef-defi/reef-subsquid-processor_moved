@@ -22,6 +22,7 @@ export class Event {
     @ManyToOne_(() => Block, {nullable: true})
     block!: Block
 
+    @Index_()
     @Column_("int4", {nullable: false})
     index!: number
 

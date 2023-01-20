@@ -54,6 +54,10 @@ export class VerifiedContract {
     @Column_("jsonb", {nullable: true})
     contractData!: unknown | undefined | null
 
+    @Column_("text", {nullable: true})
+    license!: string | undefined | null
+
+    @Index_()
     @Column_("timestamp with time zone", {nullable: true})
     timestamp!: Date | undefined | null
 }

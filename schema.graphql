@@ -158,6 +158,7 @@ type VerificationRequest @entity {
   target: String!
   success: Boolean! @index
   message: String
+  license: String
   timestamp: DateTime
 }
 
@@ -176,6 +177,7 @@ type VerifiedContract @entity {
   target: String!
   type: ContractType @index
   contractData: JSON
+  license: String
   timestamp: DateTime @index
 }
 

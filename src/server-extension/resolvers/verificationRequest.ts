@@ -18,6 +18,7 @@ export class VerificationRequestResolver {
     @Arg('target') target: string,
     @Arg('success') success: boolean,
     @Arg('message') message: string,
+    @Arg('license') license: string,
     @Arg('timestamp') timestamp: number,
   ): Promise<Boolean> {
     const manager = await this.tx();
@@ -34,6 +35,7 @@ export class VerificationRequestResolver {
       target,
       success,
       message,
+      license,
       timestamp: new Date(timestamp)
     });
 

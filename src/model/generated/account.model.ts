@@ -30,6 +30,7 @@ export class Account {
     @Column_("bool", {nullable: false})
     active!: boolean
 
+    @Index_()
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     freeBalance!: bigint
 
