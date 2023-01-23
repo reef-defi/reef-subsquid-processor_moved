@@ -2,20 +2,25 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { ExtrinsicData, ExtrinsicRaw } from "../interfaces/interfaces";
 import { Block, Extrinsic, ExtrinsicStatus, ExtrinsicType } from "../model";
 import { ctx } from "../processor";
-import { hexToNativeAddress, toCamelCase } from "../util/util";
+import { fetchSpec, hexToNativeAddress, toCamelCase } from "../util/util";
+import {
+    encodeExtrinsic,
+} from "@subsquid/substrate-metadata"
 
 export class ExtrinsicManager {  
     extrinsicsData: Map<string, ExtrinsicData> = new Map();
   
-    process(extrinsicRaw: ExtrinsicRaw, blockHeader: SubstrateBlock) {
+    async process(extrinsicRaw: ExtrinsicRaw, blockHeader: SubstrateBlock) {
         if (this.extrinsicsData.has(extrinsicRaw.id)) return;
+        const spec = await fetchSpec(blockHeader);
 
         let signer = null;
         if (extrinsicRaw.signature?.address?.value) {
             signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
             // TODO: get fee and fee details,
-            // const info = await ctx._chain.client.call('payment_queryInfo', [hash]);
-            // const feeDetails = await ctx._chain.client.call('payment_queryFeeDetails', [hash]);
+            const encodedExtrinsic = encodeExtrinsic(extrinsicRaw, spec.description, spec.scaleCodec);
+            const info = await ctx._chain.client.call('payment_queryInfo', [extrinsicRaw]);
+            const feeDetails = await ctx._chain.client.call('payment_queryFeeDetails', [extrinsicRaw]);
         }
 
         const extrinsicData = {
@@ -24,7 +29,7 @@ export class ExtrinsicManager {
             index: extrinsicRaw.indexInBlock,
             hash: extrinsicRaw.hash,
             args: extrinsicRaw.call.args ? Object.keys(extrinsicRaw.call.args).map(key => extrinsicRaw.call.args[key]) : [],
-            docs: "", // TODO
+            docs: spec.calls.definitions[extrinsicRaw.call.name].docs,
             method: toCamelCase(extrinsicRaw.call.name.split(".")[1]),
             section: extrinsicRaw.call.name.split(".")[0],
             signer: signer || "",

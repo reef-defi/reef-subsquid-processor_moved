@@ -14,7 +14,7 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
+import { fetchSpec, hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
 import {KnownArchives, lookupArchive} from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
@@ -80,7 +80,7 @@ processor.run(database, async (ctx_) => {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
 
-        extrinsicManager.process(eventRaw.extrinsic, block.header);
+        await extrinsicManager.process(eventRaw.extrinsic, block.header);
         eventManager.process(eventRaw, block.header);
 
         switch (item.name as string) {
