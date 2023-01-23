@@ -4,6 +4,19 @@ import { ethers } from "ethers";
 import { ERC20Data } from "../interfaces/interfaces";
 import { ctx } from "../processor";
 import { EvmAccountsAccountsStorage } from "../types/storage";
+import {
+  decodeMetadata,
+  getChainDescriptionFromMetadata,
+  getOldTypesBundle,
+  isPreV14,
+  OldSpecsBundle,
+  OldTypes,
+  OldTypesBundle
+} from '@subsquid/substrate-metadata'
+import {getTypesFromBundle} from '@subsquid/substrate-metadata/lib/old/typesBundle'
+import {bundle} from '@subsquid/substrate-metadata/lib/old/definitions/reef'
+import {Codec, HexSink, Src} from '@subsquid/scale-codec'
+import * as eac from '@subsquid/substrate-metadata/lib/events-and-calls'
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
 export const REEF_DEFAULT_DATA: ERC20Data = {
@@ -112,4 +125,33 @@ const u8aToHex = (value?: Uint8Array | null, bitLength = -1, isPrefixed = true):
 
 export const bufferToString = (buffer: Buffer): string => {
     return u8aToHex(bufferToU8a(buffer));
+}
+
+const splitSpecId = (specId: string): [name: string, version: number] => {
+  let m = /^(.*)@(\d+)$/.exec(specId)
+  if (m == null) throw new Error(`Invalid spec id: ${specId}`)
+  return [
+      m[1],
+      parseInt(m[2])
+  ]
+}
+
+// https://github.dev/subsquid/squid-sdk/blob/ab1cae1eb6c9c4a34760f4fea09dff45c2f4065b/substrate/substrate-ingest/src/parse/block.ts
+export const fetchSpec = async (blockHeader: SubstrateBlock): Promise<any> => {
+  const rawMetadata: string = await ctx._chain.client.call("state_getMetadata", [blockHeader.hash]);
+  const metadata = decodeMetadata(rawMetadata);
+  let oldTypes: OldTypes | undefined
+  if (isPreV14(metadata)) {
+      const [specName, specVersion] = splitSpecId(blockHeader.specId);
+      oldTypes = getTypesFromBundle(bundle, specVersion, specName)
+  }
+  let description = getChainDescriptionFromMetadata(metadata, oldTypes)
+  const spec = {
+    description,
+    rawMetadata,
+    scaleCodec: new Codec(description.types),
+    events: new eac.Registry(description.types, description.event),
+    calls: new eac.Registry(description.types, description.call)
+  }
+  return spec;
 }
