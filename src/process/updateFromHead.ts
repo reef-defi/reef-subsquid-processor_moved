@@ -178,72 +178,91 @@ const updateErc1155Balances = async (blockHeader: SubstrateBlock, tokenHolders: 
 
 // Queries storage and updates database once head block has been reached
 export const updateFromHead = async (blockHeader: SubstrateBlock) => {
-    const BATCH_SIZE = process.env.BATCH_SIZE ? parseInt(process.env.BATCH_SIZE) : 0;
-    const WAIT_TIME = process.env.WAIT_TIME ? parseInt(process.env.WAIT_TIME) : 10000;
+    const BATCH_SIZE = process.env.BATCH_SIZE ? parseInt(process.env.BATCH_SIZE) : 100;
+    const WAIT_TIME = process.env.WAIT_TIME ? parseInt(process.env.WAIT_TIME) : 0;
 
     ctx.log.info(`Updating accounts and token holders from head block ${blockHeader.height}`);
 
     // Fetch accounts from DB and update them in batches
-    const accounts = (await ctx.store.find(Account))
-        .filter(account => !['0x', 'deleted'].includes(account.id));
-    ctx.log.info(`Total accounts: ${accounts.length}`);
-    for (let i = 0; i < accounts.length; i += BATCH_SIZE) {
-        const batch = accounts.slice(i, i + BATCH_SIZE);
-        ctx.log.info(`Updating accounts ${i} to ${i + batch.length}...`);
-        await updateAccounts(batch, blockHeader);
+    const accountsCount = (await ctx.store.count(Account)); // Skip the two util accounts
+    ctx.log.info(`Total accounts: ${accountsCount - 2}`);
+    for (let i = 2; i < accountsCount; i += BATCH_SIZE) {
+        const accounts = await ctx.store.find(Account, { 
+            skip: i, 
+            take: BATCH_SIZE, 
+            order: { timestamp: 'ASC' } 
+        });
+        ctx.log.info(`Updating accounts ${i - 2} to ${i - 2 + accounts.length}...`);
+        await updateAccounts(accounts, blockHeader);
         await sleep(WAIT_TIME);
     }
 
     // We have to wait for accounts to be updated so that we can get the EVM addresses and updated REEF balances
     // Fetch native token holders from DB and update them in batches
-    const nativeTokenHolders = await ctx.store.find(TokenHolder, {
-        where: { token: { id: REEF_CONTRACT_ADDRESS } },
-        relations: { token: true, signer: true }
+    const nativeTokenHoldersCount = await ctx.store.count(TokenHolder, { 
+        where: { token: { id: REEF_CONTRACT_ADDRESS } } 
     });
-    ctx.log.info(`Total native token holders: ${nativeTokenHolders.length}`);
-    for (let i = 0; i < nativeTokenHolders.length; i += BATCH_SIZE) {
-        const batch = nativeTokenHolders.slice(i, i + BATCH_SIZE);
-        ctx.log.info(`Updating native token holders ${i} to ${i + batch.length}...`);
-        await updateNativeTokenHolders(batch);
+    ctx.log.info(`Total native token holders: ${nativeTokenHoldersCount}`);
+    for (let i = 0; i < nativeTokenHoldersCount; i += BATCH_SIZE) {
+        const nativeTokenHolders = await ctx.store.find(TokenHolder, {
+            skip: i, 
+            take: BATCH_SIZE,
+            where: { token: { id: REEF_CONTRACT_ADDRESS } },
+            relations: { token: true, signer: true }
+        });
+        ctx.log.info(`Updating native token holders ${i} to ${i + nativeTokenHolders.length}...`);
+        await updateNativeTokenHolders(nativeTokenHolders);
         await sleep(WAIT_TIME);
     }
 
     // Fetch ERC20 token holders from DB and update them in batches
-    const erc20TokenHolders = await ctx.store.find(TokenHolder, {
-        where: { token: { type: ContractType.ERC20, id: Not(REEF_CONTRACT_ADDRESS) } },
-        relations: { token: true, signer: true } 
+    const erc20TokenHoldersCount = await ctx.store.count(TokenHolder, {
+        where: { token: { type: ContractType.ERC20, id: Not(REEF_CONTRACT_ADDRESS) } }
     });
-    ctx.log.info(`Total ERC20 token holders: ${erc20TokenHolders.length}`);
-    for (let i = 0; i < erc20TokenHolders.length; i += BATCH_SIZE) {
-        const batch = erc20TokenHolders.slice(i, i + BATCH_SIZE);
-        ctx.log.info(`Updating ERC20 token holders ${i} to ${i + batch.length}...`);
-        await updateErc20TokenHolders(batch, blockHeader);
+    ctx.log.info(`Total ERC20 token holders: ${erc20TokenHoldersCount}`);
+    for (let i = 0; i < erc20TokenHoldersCount; i += BATCH_SIZE) {
+        const erc20TokenHolders = await ctx.store.find(TokenHolder, {
+            skip: i, 
+            take: BATCH_SIZE,
+            where: { token: { type: ContractType.ERC20, id: Not(REEF_CONTRACT_ADDRESS) } },
+            relations: { token: true, signer: true } 
+        });
+        ctx.log.info(`Updating ERC20 token holders ${i} to ${i + erc20TokenHolders.length}...`);
+        await updateErc20TokenHolders(erc20TokenHolders, blockHeader);
         await sleep(WAIT_TIME);
     }
 
     // Fetch ERC721 token holders from DB and update them in batches
-    const erc721TokenHolders = await ctx.store.find(TokenHolder, {
-        where: { token: { type: ContractType.ERC721 } },
-        relations: { token: true, signer: true }
+    const erc721TokenHoldersCount = await ctx.store.count(TokenHolder, {
+        where: { token: { type: ContractType.ERC721 } }
     });
-    ctx.log.info(`Total ERC721 token holders: ${erc721TokenHolders.length}`);
-    for (let i = 0; i < erc721TokenHolders.length; i += BATCH_SIZE) {
-        const batch = erc721TokenHolders.slice(i, i + BATCH_SIZE);
-        ctx.log.info(`Updating ERC721 token holders ${i} to ${i + batch.length}...`);
-        await updateErc721TokenHolders(batch, blockHeader);
+    ctx.log.info(`Total ERC721 token holders: ${erc721TokenHoldersCount}`);
+    for (let i = 0; i < erc721TokenHoldersCount; i += BATCH_SIZE) {
+        const erc721TokenHolders = await ctx.store.find(TokenHolder, {
+            skip: i,
+            take: BATCH_SIZE,
+            where: { token: { type: ContractType.ERC721 } },
+            relations: { token: true, signer: true }
+        });
+        ctx.log.info(`Updating ERC721 token holders ${i} to ${i + erc721TokenHolders.length}...`);
+        await updateErc721TokenHolders(erc721TokenHolders, blockHeader);
         await sleep(WAIT_TIME);
     }
 
     // Fetch ERC1155 token holders from DB and update them in batches
-    const erc1155TokenHolders = await ctx.store.find(TokenHolder, {
-        where: { token: { type: ContractType.ERC1155 } },
-        relations: { token: true, signer: true }
+    const erc1155TokenHoldersCount = await ctx.store.count(TokenHolder, {
+        where: { token: { type: ContractType.ERC1155 } }
     });
-    ctx.log.info(`Total ERC1155 token holders: ${erc1155TokenHolders.length}`);
-    for (let i = 0; i < erc1155TokenHolders.length; i += BATCH_SIZE) {
-        const batch = erc1155TokenHolders.slice(i, i + BATCH_SIZE);
-        ctx.log.info(`Updating ERC1155 token holders ${i} to ${i + batch.length}...`);
-        await updateErc1155TokenHolders(batch, blockHeader);
+    ctx.log.info(`Total ERC1155 token holders: ${erc1155TokenHoldersCount}`);
+    for (let i = 0; i < erc1155TokenHoldersCount; i += BATCH_SIZE) {
+        const erc1155TokenHolders = await ctx.store.find(TokenHolder, {
+            skip: i,
+            take: BATCH_SIZE,
+            where: { token: { type: ContractType.ERC1155 } },
+            relations: { token: true, signer: true }
+        });
+        ctx.log.info(`Updating ERC1155 token holders ${i} to ${i + erc1155TokenHolders.length}...`);
+        await updateErc1155TokenHolders(erc1155TokenHolders, blockHeader);
         await sleep(WAIT_TIME);
     }
 }
