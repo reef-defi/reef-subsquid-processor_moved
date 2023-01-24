@@ -15,7 +15,7 @@ import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
 import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
-import {KnownArchives, lookupArchive} from "@subsquid/archive-registry";
+import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
 

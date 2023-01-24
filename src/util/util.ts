@@ -113,3 +113,5 @@ const u8aToHex = (value?: Uint8Array | null, bitLength = -1, isPrefixed = true):
 export const bufferToString = (buffer: Buffer): string => {
     return u8aToHex(bufferToU8a(buffer));
 }
+
+export const sleep = async (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
