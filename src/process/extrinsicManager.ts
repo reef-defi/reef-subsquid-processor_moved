@@ -17,10 +17,10 @@ export class ExtrinsicManager {
         let signer = null;
         if (extrinsicRaw.signature?.address?.value) {
             signer = hexToNativeAddress(extrinsicRaw.signature.address.value);
-            // TODO: get fee and fee details,
-            const encodedExtrinsic = encodeExtrinsic(extrinsicRaw, spec.description, spec.scaleCodec);
-            const info = await ctx._chain.client.call('payment_queryInfo', [extrinsicRaw]);
-            const feeDetails = await ctx._chain.client.call('payment_queryFeeDetails', [extrinsicRaw]);
+            // TODO: get fee and fee details
+            // const encodedExtrinsic = encodeExtrinsic(extrinsicRaw, spec.description, spec.scaleCodec);
+            // const info = await ctx._chain.client.call('payment_queryInfo', [extrinsicRaw]);
+            // const feeDetails = await ctx._chain.client.call('payment_queryFeeDetails', [extrinsicRaw]);
         }
 
         const extrinsicData = {

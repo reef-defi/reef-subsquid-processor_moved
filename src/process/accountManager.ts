@@ -3,7 +3,7 @@ import { AccountData } from "../interfaces/interfaces";
 import { Account, Block } from "../model";
 import { ctx, headReached, reefVerifiedContract } from "../processor";
 import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage, IdentityIdentityOfStorage } from "../types/storage";
-import { bufferToString, toChecksumAddress } from "../util/util";
+import { bufferToString, extractIdentity, toChecksumAddress } from "../util/util";
 import { TokenHolderManager } from "./tokenHolderManager";
 import * as ss58 from '@subsquid/ss58';
 import { ethers } from "ethers";
@@ -127,7 +127,9 @@ export class AccountManager {
         
         if (storage.isV5) {
             // TODO: format result (https://github.com/polkadot-js/api/blob/v6.4.2/packages/api-derive/src/accounts/identity.ts)
-            return storage.asV5.get(address);
+            const identityRaw = await storage.asV5.get(address);
+            const identity = extractIdentity(identityRaw);
+            return identity;
         } else {
             throw new Error("Unknown storage version");
         }

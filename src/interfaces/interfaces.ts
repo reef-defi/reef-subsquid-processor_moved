@@ -170,3 +170,16 @@ export interface ERC721Data {
 export interface ERC20Data extends ERC721Data {
     decimals: number;
 }
+
+export interface IdentityData {
+    display: string;
+    email: string;
+    image: string;
+    judgements: [number, any][];
+    legal: string;
+    other: any[];
+    pgp: any;
+    riot: string;
+    twitter: string;
+    web: string;
+}
