@@ -155,3 +155,5 @@ export const fetchSpec = async (blockHeader: SubstrateBlock): Promise<any> => {
   }
   return spec;
 }
+
+export const sleep = async (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
