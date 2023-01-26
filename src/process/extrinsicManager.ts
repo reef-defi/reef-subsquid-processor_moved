@@ -34,9 +34,9 @@ export class ExtrinsicManager {
             section: extrinsicRaw.call.name.split(".")[0],
             signer: signer || "",
             status: extrinsicRaw.success ? ExtrinsicStatus.success : ExtrinsicStatus.error,
-            errorMessage: extrinsicRaw.error || "", // TODO: decode error
+            errorMessage: extrinsicRaw.error || "", // TODO: data - decode error
             type: signer ? ExtrinsicType.signed : ExtrinsicType.unsigned,
-            signedData: null, // TODO,
+            signedData: null, // TODO: data
             timestamp: new Date(blockHeader.timestamp),
         };
 

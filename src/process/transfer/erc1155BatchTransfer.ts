@@ -68,7 +68,7 @@ export const processErc1155BatchTransfer = async (
             denom: null,
             nftId: BigInt(ids[i].toString()),
             errorMessage: '',
-            feeAmount: 0n, // TODO
+            feeAmount: 0n, // TODO: data
         });
     }
 

@@ -61,7 +61,7 @@ export const processErc1155SingleTransfer = async (
         denom: null,
         nftId: BigInt(id.toString()),
         errorMessage: '',
-        feeAmount: 0n, // TODO
+        feeAmount: 0n, // TODO: data
     };
 
     return transferData;

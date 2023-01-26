@@ -62,7 +62,7 @@ export const processErc721Transfer = async (
         denom: (token.contractData as ERC721Data).symbol,
         nftId: BigInt(tokenId.toString()),
         errorMessage: '',
-        feeAmount: 0n, // TODO
+        feeAmount: 0n, // TODO: data
     };
 
     return transferData;

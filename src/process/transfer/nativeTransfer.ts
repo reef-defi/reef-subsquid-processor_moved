@@ -32,8 +32,8 @@ export const processNativeTransfer = async (
         timestamp: new Date(blockHeader.timestamp),
         denom: 'REEF',
         nftId: null,
-        errorMessage: eventRaw.extrinsic.success ? '' : '', // TODO get error message
-        feeAmount: 0n, // TODO
+        errorMessage: eventRaw.extrinsic.success ? '' : '', // TODO: data - get error message
+        feeAmount: 0n, // TODO: data
     };
 
     return transferData;

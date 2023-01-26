@@ -63,7 +63,7 @@ export const processErc20Transfer = async (
         denom: (token.contractData as ERC20Data).symbol,
         nftId: null,
         errorMessage: '',
-        feeAmount: 0n, // TODO
+        feeAmount: 0n, // TODO: data
     };
 
     return transferData;

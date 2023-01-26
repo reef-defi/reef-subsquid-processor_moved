@@ -134,7 +134,7 @@ const splitSpecId = (specId: string): [name: string, version: number] => {
   ]
 }
 
-// TODO: pending
+// TODO: data - pending
 // https://github.dev/subsquid/squid-sdk/blob/ab1cae1eb6c9c4a34760f4fea09dff45c2f4065b/substrate/substrate-ingest/src/parse/block.ts
 export const fetchSpec = async (blockHeader: SubstrateBlock): Promise<any> => {
   const rawMetadata: string = await ctx._chain.client.call("state_getMetadata", [blockHeader.hash]);
