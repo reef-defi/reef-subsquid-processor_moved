@@ -126,10 +126,8 @@ export class AccountManager {
         if (!storage.isExists) return undefined;
         
         if (storage.isV5) {
-            // TODO: format result (https://github.com/polkadot-js/api/blob/v6.4.2/packages/api-derive/src/accounts/identity.ts)
             const identityRaw = await storage.asV5.get(address);
-            const identity = extractIdentity(identityRaw);
-            return identity;
+            return extractIdentity(identityRaw);
         } else {
             throw new Error("Unknown storage version");
         }
