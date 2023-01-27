@@ -13,13 +13,13 @@ export const REEF_DEFAULT_DATA: ERC20Data = {
 };
 
 export const hexToNativeAddress = (address: string | undefined): string => {
-    if (!address) return '';
+    if (!address) return '0x';
     try {
         const buffer = Buffer.from(address.split('0x')[1], "hex");
         return ss58.codec('substrate').encode(new Uint8Array(buffer));
     } catch (error) {
         console.error("Error converting hex value to native address:", error);
-        return '';
+        return '0x';
     }
 }
 

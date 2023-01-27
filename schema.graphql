@@ -4,7 +4,7 @@ type ChainInfo @entity {
   count: Int!
 }
 
-type Block @entity {
+type Block @entity @index(fields: ["height", "id"], unique: true) {
   "000000..00<blockNum>-<shorthash>"
   id: ID!
   height: Int! @index @unique
@@ -21,11 +21,11 @@ type Block @entity {
   accounts: [Account!] @derivedFrom(field: "block")
 }
 
-type Extrinsic @entity {
+type Extrinsic @entity @index(fields: ["timestamp", "id"], unique: true) @index(fields: ["index", "block"], unique: true) {
   "000000..00<blockNum>-000<index>-<shorthash>"
   id: ID!
   block: Block!
-  index: Int!
+  index: Int! @index
   hash: String! @index @unique
   args: JSON!
   docs: String!
@@ -42,7 +42,7 @@ type Extrinsic @entity {
   # An extrinsic can have only one contract, it is required to use an array for the precompiled contracts, that reference the same virtual extrinsic with id -1.
 }
 
-type Event @entity {
+type Event @entity @index(fields: ["id", "block"], unique: true) @index(fields: ["extrinsic", "index"], unique: true) @index(fields: ["block", "index", "extrinsic"], unique: true) {
   "000000..00<blockNum>-000<index>-<shorthash>"
   id: ID!
   extrinsic: Extrinsic!
@@ -55,7 +55,7 @@ type Event @entity {
   timestamp: DateTime!
 }
 
-type Account @entity {
+type Account @entity @index(fields: ["freeBalance", "id"], unique: true) {
   "Native address"
   id: ID!
   evmAddress: String @index
@@ -74,7 +74,7 @@ type Account @entity {
   contracts: [Contract!] @derivedFrom(field: "signer")
 }
 
-type Contract @entity {
+type Contract @entity @index(fields: ["extrinsic", "id"], unique: true) {
   "Address"
   id: ID!
   extrinsic: Extrinsic!
@@ -108,7 +108,7 @@ type EvmEvent @entity {
 
 # ================ Token transfers ========================
 
-type Transfer @entity {
+type Transfer @entity @index(fields: ["id", "extrinsic"], unique: true) {
   id: ID!
   block: Block!
   extrinsic: Extrinsic!
@@ -162,7 +162,7 @@ type VerificationRequest @entity {
   timestamp: DateTime
 }
 
-type VerifiedContract @entity {
+type VerifiedContract @entity @index(fields: ["contract", "type"], unique: true) @index(fields: ["contract", "id"], unique: true) {
   "Address"
   id: ID!
   contract: Contract!
