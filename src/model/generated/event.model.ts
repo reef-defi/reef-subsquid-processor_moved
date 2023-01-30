@@ -2,6 +2,9 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import {Extrinsic} from "./extrinsic.model"
 import {Block} from "./block.model"
 
+@Index_(["id", "block"], {unique: true})
+@Index_(["extrinsic", "index"], {unique: true})
+@Index_(["block", "index", "extrinsic"], {unique: true})
 @Entity_()
 export class Event {
     constructor(props?: Partial<Event>) {
@@ -14,11 +17,9 @@ export class Event {
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
     @ManyToOne_(() => Extrinsic, {nullable: true})
     extrinsic!: Extrinsic
 
-    @Index_()
     @ManyToOne_(() => Block, {nullable: true})
     block!: Block
 

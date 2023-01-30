@@ -3,6 +3,7 @@ import * as marshal from "./marshal"
 import {Block} from "./block.model"
 import {Contract} from "./contract.model"
 
+@Index_(["freeBalance", "id"], {unique: true})
 @Entity_()
 export class Account {
     constructor(props?: Partial<Account>) {
@@ -30,7 +31,6 @@ export class Account {
     @Column_("bool", {nullable: false})
     active!: boolean
 
-    @Index_()
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     freeBalance!: bigint
 

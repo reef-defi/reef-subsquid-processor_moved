@@ -5,6 +5,8 @@ import {ExtrinsicType} from "./_extrinsicType"
 import {Event} from "./event.model"
 import {Contract} from "./contract.model"
 
+@Index_(["timestamp", "id"], {unique: true})
+@Index_(["index", "block"], {unique: true})
 @Entity_()
 export class Extrinsic {
     constructor(props?: Partial<Extrinsic>) {
@@ -58,7 +60,6 @@ export class Extrinsic {
     @Column_("jsonb", {nullable: true})
     signedData!: unknown | undefined | null
 
-    @Index_()
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 

@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-explorer-testnet
-version: 2
+version: 3
 description: |-
   Reef Chain testnet explorer data
 
