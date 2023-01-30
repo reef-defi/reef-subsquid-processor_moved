@@ -9,6 +9,11 @@ import {
   getChainDescriptionFromMetadata,
   isPreV14,
   OldTypes,
+  ModuleMetadataV9,
+  ModuleMetadataV10,
+  ModuleMetadataV11,
+  ModuleMetadataV12,
+  ModuleMetadataV13
 } from '@subsquid/substrate-metadata'
 import { getTypesFromBundle } from '@subsquid/substrate-metadata/lib/old/typesBundle'
 import { bundle } from '@subsquid/substrate-metadata/lib/old/definitions/reef'
@@ -134,20 +139,27 @@ const splitSpecId = (specId: string): [name: string, version: number] => {
   ]
 }
 
-// TODO: data - pending
+export type MetadataModule = ModuleMetadataV9 | ModuleMetadataV10 | ModuleMetadataV11 | ModuleMetadataV12 | ModuleMetadataV13;
+
+// TODO: data - check if all parameters returned are required
 // https://github.dev/subsquid/squid-sdk/blob/ab1cae1eb6c9c4a34760f4fea09dff45c2f4065b/substrate/substrate-ingest/src/parse/block.ts
 export const fetchSpec = async (blockHeader: SubstrateBlock): Promise<any> => {
   const rawMetadata: string = await ctx._chain.client.call("state_getMetadata", [blockHeader.hash]);
   const metadata = decodeMetadata(rawMetadata);
-  let oldTypes: OldTypes | undefined
+  let oldTypes: OldTypes | undefined;
   if (isPreV14(metadata)) {
       const [specName, specVersion] = splitSpecId(blockHeader.specId);
       oldTypes = getTypesFromBundle(bundle, specVersion, specName)
+  }
+  let modules: MetadataModule[] = [];
+  if ((metadata as any).value?.modules?.length) {
+    modules = (metadata as any).value.modules;
   }
   let description = getChainDescriptionFromMetadata(metadata, oldTypes)
   const spec = {
     description,
     rawMetadata,
+    modules,
     scaleCodec: new Codec(description.types),
     events: new eac.Registry(description.types, description.event),
     calls: new eac.Registry(description.types, description.call)
