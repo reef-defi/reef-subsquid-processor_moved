@@ -2,23 +2,16 @@ import * as ss58 from "@subsquid/ss58"
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { ethers } from "ethers";
 import { ERC20Data, IdentityData } from "../interfaces/interfaces";
-import { ctx } from "../processor";
+import { ctx, modules } from "../processor";
 import { EvmAccountsAccountsStorage } from "../types/storage";
 import {
   decodeMetadata,
-  getChainDescriptionFromMetadata,
-  isPreV14,
-  OldTypes,
   ModuleMetadataV9,
   ModuleMetadataV10,
   ModuleMetadataV11,
   ModuleMetadataV12,
   ModuleMetadataV13
 } from '@subsquid/substrate-metadata'
-import { getTypesFromBundle } from '@subsquid/substrate-metadata/lib/old/typesBundle'
-import { bundle } from '@subsquid/substrate-metadata/lib/old/definitions/reef'
-import { Codec } from '@subsquid/scale-codec'
-import * as eac from '@subsquid/substrate-metadata/lib/events-and-calls'
 import { Data_Raw5, Registration } from "../types/v5";
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
@@ -130,41 +123,16 @@ export const bufferToString = (buffer: Buffer): string => {
     return u8aToHex(bufferToU8a(buffer));
 }
 
-const splitSpecId = (specId: string): [name: string, version: number] => {
-  let m = /^(.*)@(\d+)$/.exec(specId)
-  if (m == null) throw new Error(`Invalid spec id: ${specId}`)
-  return [
-      m[1],
-      parseInt(m[2])
-  ]
-}
-
 export type MetadataModule = ModuleMetadataV9 | ModuleMetadataV10 | ModuleMetadataV11 | ModuleMetadataV12 | ModuleMetadataV13;
 
-// TODO: data - check if all parameters returned are required
-// https://github.dev/subsquid/squid-sdk/blob/ab1cae1eb6c9c4a34760f4fea09dff45c2f4065b/substrate/substrate-ingest/src/parse/block.ts
-export const fetchSpec = async (blockHeader: SubstrateBlock): Promise<any> => {
+export const fetchModules = async (blockHeader: SubstrateBlock): Promise<any> => {
   const rawMetadata: string = await ctx._chain.client.call("state_getMetadata", [blockHeader.hash]);
   const metadata = decodeMetadata(rawMetadata);
-  let oldTypes: OldTypes | undefined;
-  if (isPreV14(metadata)) {
-      const [specName, specVersion] = splitSpecId(blockHeader.specId);
-      oldTypes = getTypesFromBundle(bundle, specVersion, specName)
-  }
   let modules: MetadataModule[] = [];
   if ((metadata as any).value?.modules?.length) {
     modules = (metadata as any).value.modules;
   }
-  let description = getChainDescriptionFromMetadata(metadata, oldTypes)
-  const spec = {
-    description,
-    rawMetadata,
-    modules,
-    scaleCodec: new Codec(description.types),
-    events: new eac.Registry(description.types, description.event),
-    calls: new eac.Registry(description.types, description.call)
-  }
-  return spec;
+  return modules;
 }
 
 export const sleep = async (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
@@ -220,4 +188,16 @@ export const extractIdentity = (identityRaw: Registration | undefined): Partial<
   identity.judgements = extractJudgements(identityRaw.judgements);
 
   return identity;
+}
+
+export const getErrorMessage = (error: any, section: string): string => {
+  let errorMessage = "";
+  const module = modules.find((module: MetadataModule) => module.name === section);
+  if (error.value?.error) {
+      const err = module?.errors ? module.errors[error.value.error as number] : null;
+      errorMessage = err ? `${section}.${err.name}:${err.docs}` : "";
+  } else  {
+      errorMessage = error.__kind || "";
+  }
+  return errorMessage;
 }

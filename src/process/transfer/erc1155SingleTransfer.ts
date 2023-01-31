@@ -12,6 +12,7 @@ export const processErc1155SingleTransfer = async (
     eventRaw: EventRaw,
     blockHeader: SubstrateBlock,
     token: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager,
     tokenHolderManager: TokenHolderManager
 ): Promise<TransferData> => {    
@@ -61,7 +62,7 @@ export const processErc1155SingleTransfer = async (
         denom: null,
         nftId: BigInt(id.toString()),
         errorMessage: '',
-        feeAmount: 0n, // TODO: data
+        feeAmount: feeAmount
     };
 
     return transferData;

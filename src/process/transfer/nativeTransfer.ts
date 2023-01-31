@@ -2,12 +2,13 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { EventRaw, TransferData } from "../../interfaces/interfaces";
 import { TransferType, VerifiedContract } from "../../model";
-import { fetchSpec, hexToNativeAddress, MetadataModule } from "../../util/util";
+import { getErrorMessage, hexToNativeAddress } from "../../util/util";
 
 export const processNativeTransfer = async (
     eventRaw: EventRaw, 
     blockHeader: SubstrateBlock,
     contract: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager
 ): Promise<TransferData> => {
     const from = hexToNativeAddress(eventRaw.args[0]);
@@ -19,11 +20,8 @@ export const processNativeTransfer = async (
 
     let errorMessage = "";
     if (eventRaw.extrinsic.error) {
-        const spec = await fetchSpec(blockHeader);
         const section = eventRaw.extrinsic.call.name.split(".")[0];
-        const module: MetadataModule = spec.modules.find((module: MetadataModule) => module.name === section);
-        const error = module?.errors ? module.errors[eventRaw.extrinsic.error.value.error as number] : null;
-        errorMessage = error ? `${section}.${error.name}:${error.docs}` : "";
+        errorMessage = getErrorMessage(eventRaw.extrinsic.error, section);
     }
 
     const transferData = {
@@ -42,7 +40,7 @@ export const processNativeTransfer = async (
         denom: 'REEF',
         nftId: null,
         errorMessage: errorMessage,
-        feeAmount: 0n, // TODO: data
+        feeAmount: feeAmount
     };
 
     return transferData;

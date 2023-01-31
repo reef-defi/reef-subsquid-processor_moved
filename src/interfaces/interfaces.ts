@@ -1,6 +1,28 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { QualifiedName, SubstrateEvent, SubstrateExtrinsicSignature } from "@subsquid/substrate-processor"
 import { EvmEventStatus, EvmEventType, ExtrinsicStatus, ExtrinsicType, StakingType, TokenHolderType, TransferType, VerifiedContract } from "../model"
+
+interface Fee {
+    class: string,
+    partialFee: bigint,
+    weight: bigint
+}
+
+interface InclusionFee {
+    baseFee: bigint,
+    lenFee: bigint,
+    adjustedWeightFee: bigint
+}
+
+interface FeeDetails {
+    inclusionFee: InclusionFee,
+}
+
+export interface SignedData {
+    fee: Fee,
+    feeDetails: FeeDetails
+}
+
 export interface ExtrinsicData {
     id: string,
     blockId: string,
@@ -14,7 +36,7 @@ export interface ExtrinsicData {
     status: ExtrinsicStatus,
     errorMessage: string | undefined | null,
     type: ExtrinsicType,
-    signedData: unknown | undefined | null,
+    signedData: SignedData | unknown | undefined | null,
     timestamp: Date
 }
 

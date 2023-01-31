@@ -12,6 +12,7 @@ export const processErc1155BatchTransfer = async (
     eventRaw: EventRaw,
     blockHeader: SubstrateBlock,
     token: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager,
     tokenHolderManager: TokenHolderManager
 ): Promise<TransferData[]> => {    
@@ -68,7 +69,7 @@ export const processErc1155BatchTransfer = async (
             denom: null,
             nftId: BigInt(ids[i].toString()),
             errorMessage: '',
-            feeAmount: 0n, // TODO: data
+            feeAmount: feeAmount
         });
     }
 
