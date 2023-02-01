@@ -3,6 +3,7 @@ import * as marshal from "./marshal"
 import {Extrinsic} from "./extrinsic.model"
 import {Account} from "./account.model"
 
+@Index_(["extrinsic", "id"], {unique: true})
 @Entity_()
 export class Contract {
     constructor(props?: Partial<Contract>) {
@@ -15,7 +16,6 @@ export class Contract {
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
     @ManyToOne_(() => Extrinsic, {nullable: true})
     extrinsic!: Extrinsic
 

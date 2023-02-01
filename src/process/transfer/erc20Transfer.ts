@@ -12,6 +12,7 @@ export const processErc20Transfer = async (
     eventRaw: EventRaw, 
     blockHeader: SubstrateBlock,
     token: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager,
     tokenHolderManager: TokenHolderManager
 ): Promise<TransferData | undefined> => {
@@ -63,7 +64,7 @@ export const processErc20Transfer = async (
         denom: (token.contractData as ERC20Data).symbol,
         nftId: null,
         errorMessage: '',
-        feeAmount: 0n, // TODO
+        feeAmount: feeAmount
     };
 
     return transferData;

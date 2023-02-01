@@ -26,30 +26,31 @@ export class TransferManager {
         blockHeader: SubstrateBlock, 
         accountManager: AccountManager,
         contract: VerifiedContract,
+        feeAmount: bigint,
         isNative: boolean = false
     ) {
         if (isNative) {
-            this.transfersData.push(await processNativeTransfer(eventRaw, blockHeader, contract, accountManager));
+            this.transfersData.push(await processNativeTransfer(eventRaw, blockHeader, contract, feeAmount, accountManager));
             return;
         }
 
         switch (eventRaw.args.topics[0]) {
             case erc20.events.Transfer.topic:
                 if (contract.type !== ContractType.ERC20) break;
-                const erc20Transfer = await processErc20Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager);
+                const erc20Transfer = await processErc20Transfer(eventRaw, blockHeader, contract, feeAmount, accountManager, this.tokenHolderManager);
                 if (erc20Transfer) this.transfersData.push(erc20Transfer);
                 break;
             case erc721.events.Transfer.topic:
                 if (contract.type !== ContractType.ERC721) break;
-                this.transfersData.push(await processErc721Transfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
+                this.transfersData.push(await processErc721Transfer(eventRaw, blockHeader, contract, feeAmount, accountManager, this.tokenHolderManager));
                 break;
             case erc1155.events.TransferSingle.topic:
                 if (contract.type !== ContractType.ERC1155) break;
-                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
+                this.transfersData.push(await processErc1155SingleTransfer(eventRaw, blockHeader, contract, feeAmount, accountManager, this.tokenHolderManager));
                 break;
             case erc1155.events.TransferBatch.topic:
                 if (contract.type !== ContractType.ERC1155) break;
-                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader, contract, accountManager, this.tokenHolderManager));
+                this.transfersData.push(...await processErc1155BatchTransfer(eventRaw, blockHeader, contract, feeAmount, accountManager, this.tokenHolderManager));
                 break;
         }
     }

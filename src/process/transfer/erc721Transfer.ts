@@ -12,6 +12,7 @@ export const processErc721Transfer = async (
     eventRaw: EventRaw,
     blockHeader: SubstrateBlock,
     token: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager,
     tokenHolderManager: TokenHolderManager
 ): Promise<TransferData> => {
@@ -62,7 +63,7 @@ export const processErc721Transfer = async (
         denom: (token.contractData as ERC721Data).symbol,
         nftId: BigInt(tokenId.toString()),
         errorMessage: '',
-        feeAmount: 0n, // TODO
+        feeAmount: feeAmount
     };
 
     return transferData;

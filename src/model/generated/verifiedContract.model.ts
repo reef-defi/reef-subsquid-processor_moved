@@ -2,6 +2,8 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import {Contract} from "./contract.model"
 import {ContractType} from "./_contractType"
 
+@Index_(["contract", "type"], {unique: true})
+@Index_(["contract", "id"], {unique: true})
 @Entity_()
 export class VerifiedContract {
     constructor(props?: Partial<VerifiedContract>) {
@@ -14,7 +16,6 @@ export class VerifiedContract {
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
     @ManyToOne_(() => Contract, {nullable: true})
     contract!: Contract
 

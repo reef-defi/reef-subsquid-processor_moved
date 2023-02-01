@@ -6,6 +6,7 @@ import {Account} from "./account.model"
 import {VerifiedContract} from "./verifiedContract.model"
 import {TransferType} from "./_transferType"
 
+@Index_(["id", "extrinsic"], {unique: true})
 @Entity_()
 export class Transfer {
     constructor(props?: Partial<Transfer>) {

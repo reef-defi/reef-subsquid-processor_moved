@@ -3,6 +3,7 @@ import {Extrinsic} from "./extrinsic.model"
 import {Event} from "./event.model"
 import {Account} from "./account.model"
 
+@Index_(["height", "id"], {unique: true})
 @Entity_()
 export class Block {
     constructor(props?: Partial<Block>) {

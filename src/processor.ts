@@ -14,7 +14,7 @@ import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
 import { StakingManager } from "./process/stakingManager";
-import { hexToNativeAddress, REEF_CONTRACT_ADDRESS } from "./util/util";
+import { fetchModules, hexToNativeAddress, MetadataModule, REEF_CONTRACT_ADDRESS } from "./util/util";
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
@@ -41,6 +41,7 @@ export type Item = BatchProcessorItem<typeof processor>;
 export type Context = BatchContext<Store, Item>;
 export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
+export let modules: MetadataModule[];
 export let headReached = process.env.HEAD_REACHED === 'true';
 
 // Avoid type errors when serializing BigInts
@@ -54,6 +55,13 @@ processor.run(database, async (ctx_) => {
     reefVerifiedContract = reefVerifiedContract_;
   } else {
     throw new Error('REEF verified contract not found in the database');
+  }
+
+  const modules_ = await fetchModules(ctx.blocks[0].header);
+  if (modules_.length) {
+    modules = modules_;
+  } else {
+    throw new Error('Metadata modules not found');
   }
 
   const blockManager: BlockManager = new BlockManager();
@@ -80,18 +88,18 @@ processor.run(database, async (ctx_) => {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
 
-        extrinsicManager.process(eventRaw.extrinsic, block.header);
+        const feeAmount = await extrinsicManager.process(eventRaw.extrinsic, block.header);
         eventManager.process(eventRaw, block.header);
 
         switch (item.name as string) {
           case 'EVM.Log':
-            await evmEventManager.process(eventRaw, block.header, transferManager, accountManager, ctx.store);
+            await evmEventManager.process(eventRaw, block.header, feeAmount, transferManager, accountManager, ctx.store);
             break;
           case 'EVM.Created':
             await contractManager.process(eventRaw, block.header);
             break;
           case 'EVM.ExecutedFailed':
-            await evmEventManager.process(eventRaw, block.header, transferManager, accountManager);
+            await evmEventManager.process(eventRaw, block.header, feeAmount, transferManager, accountManager);
             break;
 
           case 'EvmAccounts.ClaimAccount':
@@ -108,7 +116,7 @@ processor.run(database, async (ctx_) => {
             await accountManager.process(addressReserved, block.header);
             break;
           case 'Balances.Transfer':
-            await transferManager.process(eventRaw, block.header, accountManager, reefVerifiedContract, true);
+            await transferManager.process(eventRaw, block.header, accountManager, reefVerifiedContract, feeAmount, true);
             break;
 
           case 'Staking.Rewarded':
