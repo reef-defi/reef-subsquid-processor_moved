@@ -1,9 +1,18 @@
 import * as ss58 from "@subsquid/ss58"
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { ethers } from "ethers";
-import { ERC20Data } from "../interfaces/interfaces";
-import { ctx } from "../processor";
+import { ERC20Data, IdentityData } from "../interfaces/interfaces";
+import { ctx, modules } from "../processor";
 import { EvmAccountsAccountsStorage } from "../types/storage";
+import {
+  decodeMetadata,
+  ModuleMetadataV9,
+  ModuleMetadataV10,
+  ModuleMetadataV11,
+  ModuleMetadataV12,
+  ModuleMetadataV13
+} from '@subsquid/substrate-metadata'
+import { Data_Raw5, Registration } from "../types/v5";
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
 export const REEF_DEFAULT_DATA: ERC20Data = {
@@ -114,4 +123,81 @@ export const bufferToString = (buffer: Buffer): string => {
     return u8aToHex(bufferToU8a(buffer));
 }
 
+export type MetadataModule = ModuleMetadataV9 | ModuleMetadataV10 | ModuleMetadataV11 | ModuleMetadataV12 | ModuleMetadataV13;
+
+export const fetchModules = async (blockHeader: SubstrateBlock): Promise<any> => {
+  const rawMetadata: string = await ctx._chain.client.call("state_getMetadata", [blockHeader.hash]);
+  const metadata = decodeMetadata(rawMetadata);
+  let modules: MetadataModule[] = [];
+  if ((metadata as any).value?.modules?.length) {
+    modules = (metadata as any).value.modules;
+  }
+  return modules;
+}
+
 export const sleep = async (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
+
+const decodeText = (value: Uint8Array): string => {
+  let result = '';
+
+  for (let i = 0; i < value.length; i++) {
+    result += String.fromCharCode(value[i]);
+  }
+
+  return result;
+}
+
+const extractJudgements = (judgements: [number, any][]): [number, any][] => {
+  for (const judgement of judgements) {
+    judgement[1] = { [judgement[1].__kind]: judgement[1].value || null };
+  }
+  return judgements;
+};
+
+export const extractIdentity = (identityRaw: Registration | undefined): Partial<IdentityData> => {
+  const identity: Partial<IdentityData> = { judgements: [] }
+  if (!identityRaw) return identity;
+
+  const display = (identityRaw.info.display as Data_Raw5).value;
+  if (display) identity.display = decodeText(display);
+
+  const email = (identityRaw.info.email as Data_Raw5).value;
+  if (email) identity.email = decodeText(email);
+
+  const legal = (identityRaw.info.legal as Data_Raw5).value;
+  if (legal) identity.legal = decodeText(legal);
+
+  const riot = (identityRaw.info.riot as Data_Raw5).value;
+  if (riot) identity.riot = decodeText(riot);
+
+  const twitter = (identityRaw.info.twitter as Data_Raw5).value;
+  if (twitter) identity.twitter = decodeText(twitter);
+
+  const web = (identityRaw.info.web as Data_Raw5).value;
+  if (web) identity.web = decodeText(web);
+
+  const image = (identityRaw.info.image as Data_Raw5).value;
+  if (image) identity.image = decodeText(image);
+
+  const pgp = identityRaw.info.pgpFingerprint;
+  if (pgp) identity.pgp = decodeText(pgp);
+
+  const additional = identityRaw.info.additional;
+  if (additional && additional.length) identity.other = additional;
+
+  identity.judgements = extractJudgements(identityRaw.judgements);
+
+  return identity;
+}
+
+export const getErrorMessage = (error: any, section: string): string => {
+  let errorMessage = "";
+  const module = modules.find((module: MetadataModule) => module.name === section);
+  if (error.value?.error) {
+      const err = module?.errors ? module.errors[error.value.error as number] : null;
+      errorMessage = err ? `${section}.${err.name}:${err.docs}` : "";
+  } else  {
+      errorMessage = error.__kind || "";
+  }
+  return errorMessage;
+}

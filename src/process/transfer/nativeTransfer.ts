@@ -2,12 +2,13 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "../accountManager";
 import { EventRaw, TransferData } from "../../interfaces/interfaces";
 import { TransferType, VerifiedContract } from "../../model";
-import { hexToNativeAddress } from "../../util/util";
+import { getErrorMessage, hexToNativeAddress } from "../../util/util";
 
 export const processNativeTransfer = async (
     eventRaw: EventRaw, 
     blockHeader: SubstrateBlock,
     contract: VerifiedContract,
+    feeAmount: bigint,
     accountManager: AccountManager
 ): Promise<TransferData> => {
     const from = hexToNativeAddress(eventRaw.args[0]);
@@ -16,6 +17,12 @@ export const processNativeTransfer = async (
 
     const fromAccountData = await accountManager.process(from, blockHeader);
     const toAccountData = await accountManager.process(to, blockHeader);
+
+    let errorMessage = "";
+    if (eventRaw.extrinsic.error) {
+        const section = eventRaw.extrinsic.call.name.split(".")[0];
+        errorMessage = getErrorMessage(eventRaw.extrinsic.error, section);
+    }
 
     const transferData = {
         id: eventRaw.id,
@@ -32,8 +39,8 @@ export const processNativeTransfer = async (
         timestamp: new Date(blockHeader.timestamp),
         denom: 'REEF',
         nftId: null,
-        errorMessage: eventRaw.extrinsic.success ? '' : '', // TODO get error message
-        feeAmount: 0n, // TODO
+        errorMessage: errorMessage,
+        feeAmount: feeAmount
     };
 
     return transferData;

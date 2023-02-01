@@ -14,6 +14,7 @@ export class EvmEventManager {
     async process(
         eventRaw: EventRaw, 
         blockHeader: SubstrateBlock,
+        feeAmount: bigint,
         transferManager: TransferManager,
         accountManager: AccountManager,
         store?: Store
@@ -40,13 +41,14 @@ export class EvmEventManager {
                 const data = eventRaw.args.data;
                 dataParsed = iface.parseLog({ topics, data });
                 type = EvmEventType.Verified;
-                await transferManager.process(eventRaw, blockHeader, accountManager, contract);
+                await transferManager.process(eventRaw, blockHeader, accountManager, contract, feeAmount);
             }
         } else if (method === 'ExecutedFailed') {
             status = EvmEventStatus.Error;
             contractAddress = toChecksumAddress(eventRaw.args > 3 ? eventRaw.args[1] : eventRaw.args[0]);
-            // TODO: parse data
-            // dataParsed = eventRaw.args[2];
+            const decodedMessage = eventRaw.args[2] === '0x' 
+                ? '' : ethers.utils.toUtf8String(`0x${eventRaw.args[2].substr(138)}`.replace(/0+$/, ''));
+            dataParsed = { message: decodedMessage };
         } else {
             return;
         }

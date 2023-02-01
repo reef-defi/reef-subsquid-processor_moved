@@ -3,7 +3,7 @@ import { BigNumber, ethers } from "ethers";
 import { Account, ContractType, TokenHolder } from "../model";
 import { ctx } from "../processor";
 import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage, IdentityIdentityOfStorage } from "../types/storage";
-import { bufferToString, REEF_CONTRACT_ADDRESS, sleep } from "../util/util";
+import { bufferToString, extractIdentity, REEF_CONTRACT_ADDRESS, sleep } from "../util/util";
 import * as erc20 from "../abi/ERC20";
 import * as erc721 from "../abi/ERC721";
 import * as erc1155 from "../abi/ERC1155";
@@ -107,8 +107,8 @@ const getIdentities = async (blockHeader: SubstrateBlock, addresses: Uint8Array[
     if (!storage.isExists) return undefined;
     
     if (storage.isV5) {
-        // TODO: format reponses (https://github.com/polkadot-js/api/blob/v6.4.2/packages/api-derive/src/accounts/identity.ts)
-        return storage.asV5.getMany(addresses);
+        const identityRaws = await storage.asV5.getMany(addresses);
+        return identityRaws.map(identityRaw => extractIdentity(identityRaw));
     } else {
         throw new Error("Unknown storage version");
     }
