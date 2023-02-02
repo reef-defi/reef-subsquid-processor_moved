@@ -3,10 +3,11 @@ import { TransferType, VerifiedContract } from "../../model";
 import * as erc721 from "../../abi/ERC721";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { findNativeAddress, toChecksumAddress } from "../../util/util";
-import { ctx, headReached } from "../../processor";
+import { ctx, headReached, pinToIPFSEnabled } from "../../processor";
 import { TokenHolderManager } from "../tokenHolderManager";
 import { ethers } from "ethers";
 import { AccountManager } from "../accountManager";
+import { pinToIPFS } from "../../util/ipfs";
 
 export const processErc721Transfer = async (
     eventRaw: EventRaw,
@@ -18,6 +19,14 @@ export const processErc721Transfer = async (
 ): Promise<TransferData> => {
     const tokenAddress = token.id;
     const [from, to, tokenId ] = erc721.events.Transfer.decode(eventRaw.args.log || eventRaw.args);
+
+    if (pinToIPFSEnabled && from === ethers.constants.AddressZero) {
+        // It's a mint. Pin to IPFS.
+        try {
+            const uri = await new erc721.Contract(ctx, blockHeader, tokenAddress).tokenURI(tokenId);
+            pinToIPFS(uri);
+        } catch (e) {}
+    }
 
     const toAddress = await findNativeAddress(blockHeader, to);
     const toEvmAddress = toChecksumAddress(to);

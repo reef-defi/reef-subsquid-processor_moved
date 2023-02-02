@@ -116,7 +116,7 @@ class InitialInserts {
     // Insert validated contracts
     await db.query(`
       INSERT INTO verified_contract 
-        (id, name, filename, source, runs, optimization, compiler_version, compiled_data, args, target, type, contract_data)
+        (id, name, filename, source, runs, optimization, compiler_version, compiled_data, args, target, type, contract_data, license)
       VALUES
       -- REEF
         (
@@ -131,7 +131,8 @@ class InitialInserts {
           '[]',
           '',
           'ERC20',
-          '{"name": "REEF", "symbol": "REEF", "decimals": 18}'
+          '{"name": "REEF", "symbol": "REEF", "decimals": 18}',
+          'Apache-2.0'
         ),
       -- RUSD
         (
@@ -146,7 +147,8 @@ class InitialInserts {
           '[]',
           '',
           'ERC20',
-          '{"name": "RUSD", "symbol": "RUSD", "decimals": 18}'
+          '{"name": "RUSD", "symbol": "RUSD", "decimals": 18}',
+          'Apache-2.0'
         ),
       -- StateRent
         (
@@ -161,7 +163,8 @@ class InitialInserts {
           '[]', 
           '',
           'other',
-          null
+          null,
+          'none'
         ),
       -- Oracle
         (
@@ -176,7 +179,8 @@ class InitialInserts {
           '[]', 
           '',
           'other',
-          null
+          null,
+          'none'
         ),
       -- Schedule
         (
@@ -191,7 +195,8 @@ class InitialInserts {
           '[]', 
           '',
           'other',
-          null
+          null,
+          'none'
         ),
       -- DEX
         (
@@ -206,7 +211,8 @@ class InitialInserts {
             '[]', 
             '',
             'other',
-            null
+            null,
+            'none'
           )
     `);
   }
