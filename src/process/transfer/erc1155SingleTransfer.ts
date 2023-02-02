@@ -6,7 +6,8 @@ import { findNativeAddress, toChecksumAddress } from "../../util/util";
 import { TokenHolderManager } from "../tokenHolderManager";
 import { AccountManager } from "../accountManager";
 import { ethers } from "ethers";
-import { ctx, headReached } from "../../processor";
+import { ctx, headReached, pinToIPFSEnabled } from "../../processor";
+import { pinToIPFS } from "../../util/ipfs";
 
 export const processErc1155SingleTransfer = async (
     eventRaw: EventRaw,
@@ -18,6 +19,14 @@ export const processErc1155SingleTransfer = async (
 ): Promise<TransferData> => {    
     const tokenAddress = token.id;
     const [, from, to, id, value ] = erc1155.events.TransferSingle.decode(eventRaw.args.log || eventRaw.args);
+
+    if (pinToIPFSEnabled && from === ethers.constants.AddressZero) {
+        // It's a mint. Pin to IPFS.
+        try {
+            const uri = await new erc1155.Contract(ctx, blockHeader, tokenAddress).uri(id);
+            pinToIPFS(uri.replace('{id}', id.toString().padStart(64, '0')));
+        } catch (e) {}
+    }
 
     const toAddress = await findNativeAddress(blockHeader, to);
     const toEvmAddress = toChecksumAddress(to);

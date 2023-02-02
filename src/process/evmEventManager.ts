@@ -46,8 +46,14 @@ export class EvmEventManager {
         } else if (method === 'ExecutedFailed') {
             status = EvmEventStatus.Error;
             contractAddress = toChecksumAddress(eventRaw.args > 3 ? eventRaw.args[1] : eventRaw.args[0]);
-            const decodedMessage = eventRaw.args[2] === '0x' 
-                ? '' : ethers.utils.toUtf8String(`0x${eventRaw.args[2].substr(138)}`.replace(/0+$/, ''));
+            let decodedMessage = "";
+            let eventDataHex = eventRaw.args[eventRaw.args.length - 2];
+            if (!(typeof eventDataHex === 'string')) {
+                eventDataHex = eventRaw.args[eventRaw.args.length - 1];
+            }
+            try {
+                decodedMessage = ethers.utils.toUtf8String(`0x${eventDataHex.substr(138)}`.replace(/0+$/, ''));
+            } catch (e) {}
             dataParsed = { message: decodedMessage };
         } else {
             return;
