@@ -1,5 +1,5 @@
-import { BigInteger } from '@subsquid/graphql-server';
-import { Arg, Field, InputType, Mutation, Resolver } from 'type-graphql'
+import { BigInteger, Int } from '@subsquid/graphql-server';
+import { Arg, Field, InputType, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import { EntityManager, In } from 'typeorm'
 import { Account, TokenHolder, TokenHolderType, VerifiedContract } from '../../model';
 
@@ -30,6 +30,16 @@ export class TokenHolderInput {
   timestamp!: bigint;
 
   constructor(props: Partial<TokenHolderInput>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
+export class TokenHolderCount {
+  @Field(() => Int, { nullable: false })
+  count!: number;
+
+  constructor(props: Partial<TokenHolderCount>) {
     Object.assign(this, props);
   }
 }
@@ -74,5 +84,18 @@ export class TokenHolderResolver {
 
     await manager.save(entities);
     return true;
+  }
+
+  @Query(() => TokenHolderCount)
+  async tokenHoldersCount(@Arg('tokenId') tokenId: string): Promise<TokenHolderCount> {
+    const manager = await this.tx();
+    const repository = manager.getRepository(TokenHolderCount);
+    const query = `
+      SELECT COUNT(*)
+      FROM token_holder th
+      WHERE th.token_id = $1 AND th.balance > 0;
+    `;
+    const result = await repository.query(query, [tokenId]);
+    return result[0];
   }
 }

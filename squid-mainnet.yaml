@@ -9,6 +9,7 @@ build:
 deploy:
   addons:
     postgres:
+      profile: large
   processor:
     env:
       NETWORK:
