@@ -9,7 +9,6 @@ build:
 deploy:
   addons:
     postgres:
-      profile: large
   processor:
     env:
       NETWORK:
@@ -23,7 +22,12 @@ deploy:
     - ARCHIVE_LOOKUP_NAME_MAINNET
     - ARCHIVE_LOOKUP_NAME_TESTNET
     - JWT_SECRET
-      
+
+scale:
+  addons:
+    postgres:
+      profile:
+        large
 #
 #deploy:
 #  addons:
