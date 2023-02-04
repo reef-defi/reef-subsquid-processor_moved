@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-explorer
-version: 2
+version: 5
 description: |-
   Reef Chain explorer data
 
@@ -25,11 +25,13 @@ deploy:
     - INFURA_IPFS_PROJECT_ID
     - INFURA_IPFS_KEY
 
-#scale:
-#  addons:
-#    postgres:
-#      profile:
-#        large
+scale:
+  addons:
+    postgres:
+      storage: 100G
+      profile: large
+  processor:
+    profile: medium
 #
 #deploy:
 #  addons:

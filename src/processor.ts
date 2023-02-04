@@ -13,7 +13,7 @@ import { ContractManager } from "./process/contractManager";
 import { EvmEventManager } from "./process/evmEventManager";
 import { TransferManager } from "./process/transferManager";
 import { TokenHolderManager } from "./process/tokenHolderManager";
-import { StakingManager } from "./process/stakingManager";
+// import { StakingManager } from "./process/stakingManager";
 import { fetchModules, hexToNativeAddress, MetadataModule, REEF_CONTRACT_ADDRESS } from "./util/util";
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
@@ -43,7 +43,7 @@ export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
 export let modules: MetadataModule[];
 export let headReached = process.env.HEAD_REACHED === 'true'; // default to false
-export const pinToIPFSEnabled = process.env.PIN_TO_IPFS !== 'false'; // default to true
+export const pinToIPFSEnabled = false; // process.env.PIN_TO_IPFS !== 'false'; // default to true
 
 // Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
@@ -71,7 +71,7 @@ processor.run(database, async (ctx_) => {
   const contractManager: ContractManager = new ContractManager();
   const evmEventManager: EvmEventManager = new EvmEventManager();
   const tokenHolderManager: TokenHolderManager = new TokenHolderManager();
-  const stakingManager: StakingManager = new StakingManager();
+  // const stakingManager: StakingManager = new StakingManager();
   const transferManager: TransferManager = new TransferManager(tokenHolderManager);
   const accountManager = new AccountManager(tokenHolderManager);
 
@@ -120,9 +120,9 @@ processor.run(database, async (ctx_) => {
             await transferManager.process(eventRaw, block.header, accountManager, reefVerifiedContract, feeAmount, true);
             break;
 
-          case 'Staking.Rewarded':
-            await stakingManager.process(eventRaw, block.header, accountManager);
-            break;
+          // case 'Staking.Rewarded':
+          //   await stakingManager.process(eventRaw, block.header, accountManager);
+          //   break;
 
           case 'System.KilledAccount':
             const address = hexToNativeAddress(eventRaw.args);
@@ -143,5 +143,5 @@ processor.run(database, async (ctx_) => {
   await evmEventManager.save(blocks, events);
   await transferManager.save(blocks, extrinsics, accounts);
   await tokenHolderManager.save(accounts);
-  await stakingManager.save(accounts, events);
+  // await stakingManager.save(accounts, events);
 });
