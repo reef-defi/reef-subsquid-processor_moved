@@ -1,5 +1,5 @@
 manifestVersion: subsquid.io/v0.1
-name: reef
+name: reef-explorer
 version: 1
 description: |-
   Reef Chain explorer data
@@ -26,8 +26,8 @@ deploy:
     - JWT_SECRET
     - INFURA_IPFS_PROJECT_ID
     - INFURA_IPFS_KEY
-    - API_KEY_REEF-EXPLORER
-    - API_KEY_REEF-EXPLORER-TESTNET
+    - APIKEY_REEF_EXPLORER
+    - APIKEY_REEF_EXPLORER_TESTNET
 
 #scale:
 #  dedicated: true

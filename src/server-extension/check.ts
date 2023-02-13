@@ -50,7 +50,7 @@ const mutationAuthChecker = (httpReq: HttpRequest): boolean => {
 
 const queryAuthChecker = (httpReq: HttpRequest): boolean => {
   const squidName = process.env.SQUID_NAME;
-  const secret = process.env[`API_KEY_${squidName?.toUpperCase()}`];
+  const secret = process.env[`APIKEY_${squidName?.toUpperCase().replaceAll('-','_')}`];
   
   // If no secret set, allow all
   if (!secret || secret === '') return true;
