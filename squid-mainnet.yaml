@@ -13,6 +13,8 @@ deploy:
     env:
       NETWORK:
         mainnet
+      SQUID_NAME:
+        reef-explorer
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000", "--sql-statement-timeout", "1000"]
@@ -24,6 +26,8 @@ deploy:
     - JWT_SECRET
     - INFURA_IPFS_PROJECT_ID
     - INFURA_IPFS_KEY
+    - API_KEY_REEF-EXPLORER
+    - API_KEY_REEF-EXPLORER-TESTNET
 
 #scale:
 #  dedicated: true

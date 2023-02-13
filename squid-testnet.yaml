@@ -13,6 +13,8 @@ deploy:
     env:
       NETWORK:
         testnet
+      SQUID_NAME:
+        reef-explorer-testnet
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
@@ -22,6 +24,10 @@ deploy:
     - ARCHIVE_LOOKUP_NAME_MAINNET
     - ARCHIVE_LOOKUP_NAME_TESTNET
     - JWT_SECRET
+    - INFURA_IPFS_PROJECT_ID
+    - INFURA_IPFS_KEY
+    - API_KEY_REEF-EXPLORER
+    - API_KEY_REEF-EXPLORER-TESTNET
 
 scale:
   addons:

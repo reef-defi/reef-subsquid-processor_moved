@@ -51,4 +51,28 @@ export class VerifiedContractResolver {
     await manager.save(verifiedContract);
     return true;
   }
+
+  @Mutation(() => Boolean) async updateVerifiedContractData(
+    @Arg('id') id: string,
+    @Arg('contractData') contractData: string,
+  ): Promise<Boolean> {
+    const manager = await this.tx();
+
+    const verifiedContract = await manager.findOneBy(VerifiedContract, { id: id });
+    if (!verifiedContract) {
+      console.log(`ERROR updating verified contract ${id} contractData: not found in DB.`);
+      return false;
+    }
+
+    const contractDataJson = JSON.parse(contractData);
+
+    for (const key in contractDataJson) {
+      if (contractDataJson.hasOwnProperty(key)) {
+        (verifiedContract.contractData as any)[key] = contractDataJson[key];
+      }
+    }
+
+    await manager.save(verifiedContract);
+    return true;
+  }
 }
