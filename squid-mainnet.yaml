@@ -1,7 +1,7 @@
 manifestVersion: subsquid.io/v0.1
 ################################## also set SQUID_NAME env
 name: reef-bridge
-version: 2
+version: 1
 description: |-
   Reef Chain explorer data
 
@@ -14,10 +14,11 @@ deploy:
     env:
       NETWORK:
         mainnet
-      SQUID_NAME:
-        reef-bridge
     cmd: [ "node", "lib/processor" ]
   api:
+    env:
+      SQUID_NAME:
+        reef-bridge
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000", "--sql-statement-timeout", "1000"]
   secrets:
     - NODE_RPC_WS_MAINNET
@@ -29,6 +30,7 @@ deploy:
     - INFURA_IPFS_KEY
     - APIKEY_REEF_EXPLORER
     - APIKEY_REEF_EXPLORER_TESTNET
+    - APIKEY_REEF_BRIDGE
 
 #scale:
 #  dedicated: true
