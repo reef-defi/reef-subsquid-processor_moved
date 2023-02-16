@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import {Model} from '@subsquid/openreader/lib/model'
-import {GraphQLSchema, OperationDefinitionNode} from 'graphql'
+import {GraphQLSchema, OperationDefinitionNode} from 'graphql';
 
 interface HttpHeaders extends Iterable<[string, string]> {
     get(name: string): string | null
@@ -26,13 +26,24 @@ interface RequestCheckContext {
 
 // Interceptor for GraphQL HTTP requests
 export async function requestCheck(req: RequestCheckContext): Promise<boolean | string> {
-  if (req.operation.operation === 'mutation') {
-    // Mutation requests are protected by JWT
-    return mutationAuthChecker(req.http);
-  }
 
-  // Rest of requests may be protected by API key
-  return queryAuthChecker(req.http);
+console.log('  REQUEST CHECK 22 ', (new Date()).toString())
+
+ switch(req.operationName) {
+        case 'forbidme':
+            return false
+        case 'forbid':
+            return false
+        case 'complex':
+            return "too 1 complex"
+        case 'complex1':
+            return "this 1 is complex"
+        case 'foo':
+            return "bar1"
+        default:
+            return false
+  }
+      
 }
 
 const mutationAuthChecker = (httpReq: HttpRequest): boolean => {
@@ -50,11 +61,13 @@ const mutationAuthChecker = (httpReq: HttpRequest): boolean => {
 
 const queryAuthChecker = (httpReq: HttpRequest): boolean => {
   const squidName = process.env.SQUID_NAME;
-  const secret = process.env[`APIKEY_${squidName?.toUpperCase().replace(/-/g,'_')}`];
-  
+  const secretProp = `APIKEY_${squidName?.toUpperCase().replace(/-/g,'_')}`;
+  const secret = process.env[secretProp];
+  console.log('QUERY AUTH CHECKER val = ', secret, ' secret prop=',secretProp, ' reqHeaderVal=', httpReq.headers.get("authorization"));
+  console.log('secret not present=',!secret)
   // If no secret set, allow all
-  if (!secret || secret === '') return true;
-
+  if (!secret) return true;
   const authHeader = httpReq.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
+    console.log('check header =',authHeader === `Bearer ${secret}`);
+    return authHeader === `Bearer ${secret}`;
 };
