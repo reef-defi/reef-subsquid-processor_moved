@@ -3,10 +3,11 @@ import { TransferType, VerifiedContract } from "../../model";
 import * as erc1155 from "../../abi/ERC1155";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { findNativeAddress, toChecksumAddress } from "../../util/util";
-import { ctx, headReached } from "../../processor";
+import { ctx, headReached, pinToIPFSEnabled } from "../../processor";
 import { TokenHolderManager } from "../tokenHolderManager";
 import { AccountManager } from "../accountManager";
 import { ethers } from "ethers";
+import { pinToIPFS } from "../../util/ipfs";
 
 export const processErc1155BatchTransfer = async (
     eventRaw: EventRaw,
@@ -19,6 +20,17 @@ export const processErc1155BatchTransfer = async (
     const transfersData: TransferData[] = [];
     const tokenAddress = token.id;
     const [, from, to, ids, values_ ] = erc1155.events.TransferBatch.decode(eventRaw.args.log || eventRaw.args);
+
+    if (pinToIPFSEnabled && from === ethers.constants.AddressZero) {
+        // It's a mint. Pin to IPFS.
+        for (let i = 0; i < ids.length; i++) {
+            try {
+                const uri = await new erc1155.Contract(ctx, blockHeader, tokenAddress).uri(ids[i]);
+                pinToIPFS(uri.replace('{id}', ids[i].toString().padStart(64, '0')));
+            } catch (e) {}
+        }
+    }
+
     const toAddress = await findNativeAddress(blockHeader, to);
     const fromAddress = await findNativeAddress(blockHeader, from);
     const toEvmAddress = toChecksumAddress(to);

@@ -26,25 +26,40 @@ interface RequestCheckContext {
 
 // Interceptor for GraphQL HTTP requests
 export async function requestCheck(req: RequestCheckContext): Promise<boolean | string> {
-  // Mutation requests are protected by JWT
   if (req.operation.operation === 'mutation') {
-    if (!mutationAuthChecker(req.http)) {
-      console.log('Unauthorized mutation request');
-      return false;
-    }
+    // Mutation requests are protected by JWT
+    return mutationAuthChecker(req.http);
   }
-  return true;
+
+  // Rest of requests may be protected by API key
+  return queryAuthChecker(req.http);
 }
 
 const mutationAuthChecker = (httpReq: HttpRequest): boolean => {
-  const token = httpReq.headers.get("authorization");
-  if (!token) return false;
+  const authHeader = httpReq.headers.get("authorization");
+  if (!authHeader) return false;
 
-  const staticSecret = process.env.JWT_SECRET || '';
+  const secret = process.env.JWT_SECRET || '';
   try {
-    const decoded = jwt.verify(token.split('Bearer ')[1], staticSecret) as JwtPayload;
+    const decoded = jwt.verify(authHeader.split('Bearer ')[1], secret) as JwtPayload;
     return decoded.value === "MUTATE";
   } catch (error) {
     return false;
   }
+};
+
+const queryAuthChecker = (httpReq: HttpRequest): boolean => {
+  const squidName = process.env.SQUID_NAME;
+  if(!squidName){
+    return true;
+  }
+  const envVarSuffix = squidName.toUpperCase().replace(/-/g,'_')
+  const envVarName = `APIKEY_${envVarSuffix}`
+  const secret = process.env[envVarName];
+  // If no secret set, allow all
+  if (!secret) return true;
+
+  const authHeader = httpReq.headers.get("authorization");
+
+  return authHeader === `Bearer ${secret}`;
 };

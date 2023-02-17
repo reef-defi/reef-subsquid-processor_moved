@@ -223,20 +223,43 @@ type Staking @entity {
 #   timestamp: DateTime! @index
 # }
 
-# type Candlestick @entity {
-
+# type Candlestick @entity @index(fields: ["block", "pool", "token"], unique: true) {
+#   id: ID!
+#   block: Block!
+#   pool: Pool!
+#   token: VerifiedContract!
+#   open: BigInt!
+#   high: BigInt!
+#   low: BigInt!
+#   close: BigInt!
+#   timestamp: DateTime! @index
 # }
 
-# type ReservedRaw @entity {
-
+# type ReservedRaw @entity @index(fields: ["block", "pool"], unique: true) {
+#   id: ID!
+#   block: Block!
+#   pool: Pool!
+#   evmEvent: EvmEvent
+#   reserved1: BigInt!
+#   reserved2: BigInt!
+#   timestamp: DateTime! @index
 # }
 
-# type VolumeRaw @entity {
-
+# type VolumeRaw @entity @index(fields: ["block", "pool"], unique: true) {
+#   id: ID!
+#   block: Block!
+#   pool: Pool!
+#   volume1: BigInt!
+#   volume2: BigInt!
+#   timestamp: DateTime! @index
 # }
 
-# type TokenPrice @entity {
-
+# type TokenPrice @entity @index(fields: ["block", "token"], unique: true) {
+#   id: ID!
+#   block: Block!
+#   token: VerifiedContract!
+#   price: BigInt!
+#   timestamp: DateTime! @index
 # }
 
 # ===================== Enums =============================

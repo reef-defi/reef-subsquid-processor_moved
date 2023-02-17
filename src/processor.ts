@@ -42,7 +42,8 @@ export type Context = BatchContext<Store, Item>;
 export let reefVerifiedContract: VerifiedContract;
 export let ctx: Context;
 export let modules: MetadataModule[];
-export let headReached = process.env.HEAD_REACHED === 'true';
+export let headReached = process.env.HEAD_REACHED === 'true'; // default to false
+export const pinToIPFSEnabled = process.env.PIN_TO_IPFS !== 'false'; // default to true
 
 // Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
