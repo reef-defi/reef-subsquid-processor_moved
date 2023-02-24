@@ -1,7 +1,7 @@
 manifestVersion: subsquid.io/v0.1
 ################################## also set SQUID_NAME env
 name: reef-explorer
-version: 3
+version: 6
 description: |-
   Reef Chain explorer data
 
@@ -36,7 +36,7 @@ scale:
   dedicated: true
   addons:
     postgres:
-      storage: 200Gi
+      storage: 100Gi
       profile: large
   processor:
     profile: large
