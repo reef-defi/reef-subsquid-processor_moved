@@ -20,8 +20,8 @@ const getAccountBalancesBase = async (address: Uint8Array, blockHeader: Substrat
         }
     }
 
-    if (storage.isV10) {
-        const accountInfo: AccountInfo = await storage.asV10.get(address);
+    if (storage.isV8) {
+        const accountInfo: AccountInfo = await storage.asV8.get(address);
         return {
             freeBalance: BigInt(accountInfo.data.free),
             reservedBalance: BigInt(accountInfo.data.reserved),

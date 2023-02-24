@@ -86,7 +86,10 @@ processor.run(database, async (ctx_) => {
     if (storageAI.isV5) {
         const accountInfo = await storageAI.asV5.get(addressBytes); // ERROR here
         console.log('accountInfo', accountInfo);
-    }
+    } else if (storageAI.isV8) {
+      const accountInfo = await storageAI.asV8.get(addressBytes); // ERROR here
+      console.log('accountInfo', accountInfo);
+  }
     // ***********************************************************
     
     if (!headReached && ctx.isHead) {

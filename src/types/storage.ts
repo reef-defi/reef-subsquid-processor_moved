@@ -5111,15 +5111,15 @@ export class SystemAccountStorage extends StorageBase {
     /**
      *  The full account information for a particular account ID.
      */
-    get isV10(): boolean {
+    get isV8(): boolean {
         return this.getTypeHash() === '1ddc7ade926221442c388ee4405a71c9428e548fab037445aaf4b3a78f4735c1'
     }
 
     /**
      *  The full account information for a particular account ID.
      */
-    get asV10(): SystemAccountStorageV10 {
-        assert(this.isV10)
+    get asV8(): SystemAccountStorageV8 {
+        assert(this.isV8)
         return this as any
     }
 }
@@ -5144,18 +5144,18 @@ export interface SystemAccountStorageV5 {
 /**
  *  The full account information for a particular account ID.
  */
-export interface SystemAccountStorageV10 {
-    get(key: Uint8Array): Promise<v10.AccountInfo>
-    getAll(): Promise<v10.AccountInfo[]>
-    getMany(keys: Uint8Array[]): Promise<v10.AccountInfo[]>
+export interface SystemAccountStorageV8 {
+    get(key: Uint8Array): Promise<v8.AccountInfo>
+    getAll(): Promise<v8.AccountInfo[]>
+    getMany(keys: Uint8Array[]): Promise<v8.AccountInfo[]>
     getKeys(): Promise<Uint8Array[]>
     getKeys(key: Uint8Array): Promise<Uint8Array[]>
     getKeysPaged(pageSize: number): AsyncIterable<Uint8Array[]>
     getKeysPaged(pageSize: number, key: Uint8Array): AsyncIterable<Uint8Array[]>
-    getPairs(): Promise<[k: Uint8Array, v: v10.AccountInfo][]>
-    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v10.AccountInfo][]>
-    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v10.AccountInfo][]>
-    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v10.AccountInfo][]>
+    getPairs(): Promise<[k: Uint8Array, v: v8.AccountInfo][]>
+    getPairs(key: Uint8Array): Promise<[k: Uint8Array, v: v8.AccountInfo][]>
+    getPairsPaged(pageSize: number): AsyncIterable<[k: Uint8Array, v: v8.AccountInfo][]>
+    getPairsPaged(pageSize: number, key: Uint8Array): AsyncIterable<[k: Uint8Array, v: v8.AccountInfo][]>
 }
 
 export class SystemAllExtrinsicsLenStorage extends StorageBase {

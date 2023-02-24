@@ -233,7 +233,7 @@
       {
         "minmax": [
           null,
-          8
+          7
         ],
         "types": {
           "AccountInfo": "AccountInfoWithDualRefCount"

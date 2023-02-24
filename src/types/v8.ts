@@ -157,6 +157,14 @@ export interface Scheduled {
     origin: PalletsOrigin
 }
 
+export interface AccountInfo {
+    nonce: number
+    consumers: number
+    providers: number
+    sufficients: number
+    data: AccountData
+}
+
 export interface EventRecord {
     phase: Phase
     event: Event
@@ -2457,6 +2465,13 @@ export interface PalletsOrigin_Sudo {
 
 export interface PalletsOrigin_TransactionPayment {
     __kind: 'TransactionPayment'
+}
+
+export interface AccountData {
+    free: bigint
+    reserved: bigint
+    miscFrozen: bigint
+    feeFrozen: bigint
 }
 
 export type Phase = Phase_ApplyExtrinsic | Phase_Finalization | Phase_Initialization
