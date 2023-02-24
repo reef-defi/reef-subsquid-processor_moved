@@ -18,6 +18,8 @@ import { fetchModules, hexToNativeAddress, MetadataModule, REEF_CONTRACT_ADDRESS
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
 import { VerifiedContract } from "./model";
 import { updateFromHead } from "./process/updateFromHead";
+import * as ss58 from '@subsquid/ss58';
+import { SystemAccountStorage } from "./types/storage";
 
 const network = process.env.NETWORK;
 if (!network) {
@@ -28,12 +30,12 @@ const RPC_URL = process.env[`NODE_RPC_WS_${network.toUpperCase()}`];
 const AQUARIUM_ARCHIVE_NAME = process.env[`ARCHIVE_LOOKUP_NAME_${network.toUpperCase()}`] as KnownArchives;
 console.log('NETWORK=',network, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
-const START_BLOCK = parseInt(process.env.START_BLOCK || '0');
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
-  .setBlockRange({ from: START_BLOCK })
+  .setBlockRange({ from: 1408889 })
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
+  .setTypesBundle('assets/typesBundle.json')
   .addEvent("*")
   .includeAllBlocks(); // Force the processor to fetch the header data for all the blocks (by default, the processor fetches the block data only for all blocks that contain log items it was subscribed to)
 
@@ -76,6 +78,17 @@ processor.run(database, async (ctx_) => {
   const accountManager = new AccountManager(tokenHolderManager);
 
   for (const block of ctx.blocks) {
+    // Test SystemAccountStorage ********************************
+    const address = "5GsS9iiuAqWr2RmXu1nJfaW11GT3o9sTVyMko7hkPx6GhYMr";
+    const addressBytes = ss58.decode(address).bytes;
+
+    const storageAI = new SystemAccountStorage(ctx, block.header);
+    if (storageAI.isV5) {
+        const accountInfo = await storageAI.asV5.get(addressBytes); // ERROR here
+        console.log('accountInfo', accountInfo);
+    }
+    // ***********************************************************
+    
     if (!headReached && ctx.isHead) {
       headReached = true;
       await updateFromHead(block.header)

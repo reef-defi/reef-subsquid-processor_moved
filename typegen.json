@@ -1,6 +1,7 @@
 {
   "outDir": "src/types",
   "specVersions": "https://reef.archive.subsquid.io/graphql",
+  "typesBundle": "assets/typesBundle.json",
   "events": [],
   "calls": [],
   "storage": true
