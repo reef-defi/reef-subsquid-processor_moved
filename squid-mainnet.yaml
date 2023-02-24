@@ -1,7 +1,7 @@
 manifestVersion: subsquid.io/v0.1
 ################################## also set SQUID_NAME env
-name: reef-bridge
-version: 1
+name: reef-explorer
+version: 3
 description: |-
   Reef Chain explorer data
 
@@ -18,7 +18,7 @@ deploy:
   api:
     env:
       SQUID_NAME:
-        reef-bridge
+        reef-explorer
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000", "--sql-statement-timeout", "1000"]
   secrets:
     - NODE_RPC_WS_MAINNET
@@ -32,12 +32,12 @@ deploy:
     - APIKEY_REEF_EXPLORER_TESTNET
     - APIKEY_REEF_BRIDGE
 
-#scale:
-#  dedicated: true
-#  addons:
-#    postgres:
-#      storage: 100G
-#      profile: large
-#  processor:
-#    profile: large
+scale:
+  dedicated: true
+  addons:
+    postgres:
+      storage: 200Gi
+      profile: large
+  processor:
+    profile: large
 #########################################################

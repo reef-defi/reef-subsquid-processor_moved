@@ -8,7 +8,6 @@ export class ContractManager {
     contractsData: ContractData[] = [];
   
     async process(eventRaw: EventRaw, blockHeader: SubstrateBlock) {
-        // TODO: manage created by another contract
         if (eventRaw.call?.name !== 'EVM.create') return;
 
         const address = typeof eventRaw.args === 'string'
