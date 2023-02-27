@@ -149,6 +149,10 @@ const updateErc20Balances = async (blockHeader: SubstrateBlock, tokenHolders: To
     await Promise.all(
         tokenHolders.map((tokenHolder) => {
             const ownerAddress = tokenHolder.signer?.evmAddress || tokenHolder.evmAddress!;
+            if (!ownerAddress || ownerAddress === '' || ownerAddress === '0x') {
+                tokenHolder.balance = BigInt('0');
+                return Promise.resolve();
+            }
             new erc20.Contract(ctx, blockHeader, tokenHolder.token.id).balanceOf(ownerAddress)
                 .then((balance) => { tokenHolder.balance = BigInt(balance.toString()) });
         })
@@ -159,6 +163,10 @@ const updateErc721Balances = async (blockHeader: SubstrateBlock, tokenHolders: T
     await Promise.all(
         tokenHolders.map((tokenHolder) => {
             const ownerAddress = tokenHolder.signer?.evmAddress || tokenHolder.evmAddress!;
+            if (!ownerAddress || ownerAddress === '' || ownerAddress === '0x') {
+                tokenHolder.balance = BigInt('0');
+                return Promise.resolve();
+            }
             new erc721.Contract(ctx, blockHeader, tokenHolder.token.id).balanceOf(ownerAddress)
                 .then((balance) => { tokenHolder.balance = BigInt(balance.toString()) });
         })
@@ -170,6 +178,10 @@ const updateErc1155Balances = async (blockHeader: SubstrateBlock, tokenHolders: 
     await Promise.all(
         tokenHolders.map((tokenHolder) => {
             const ownerAddress = tokenHolder.signer?.evmAddress || tokenHolder.evmAddress!;
+            if (!ownerAddress || ownerAddress === '' || ownerAddress === '0x') {
+                tokenHolder.balance = BigInt('0');
+                return Promise.resolve();
+            }
             new erc1155.Contract(ctx, blockHeader, tokenHolder.token.id).balanceOf(ownerAddress, BigNumber.from(tokenHolder.nftId!))
                 .then((balance) => { tokenHolder.balance = BigInt(balance.toString()) });
         })
