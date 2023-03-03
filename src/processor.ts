@@ -73,7 +73,7 @@ processor.run(database, async (ctx_) => {
   const tokenHolderManager: TokenHolderManager = new TokenHolderManager();
   const stakingManager: StakingManager = new StakingManager();
   const transferManager: TransferManager = new TransferManager(tokenHolderManager);
-  const accountManager = new AccountManager(tokenHolderManager);
+  const accountManager = new AccountManager(tokenHolderManager, transferManager);
 
   for (const block of ctx.blocks) {
     if (!headReached && ctx.isHead) {
@@ -105,7 +105,7 @@ processor.run(database, async (ctx_) => {
 
           case 'EvmAccounts.ClaimAccount':
             const addressClaimer = hexToNativeAddress(eventRaw.args[0]);
-            await accountManager.process(addressClaimer, block.header);
+            await accountManager.process(addressClaimer, block.header, true, true);
             break;
 
           case 'Balances.Endowed':

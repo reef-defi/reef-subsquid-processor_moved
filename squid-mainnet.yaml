@@ -1,6 +1,7 @@
 manifestVersion: subsquid.io/v0.1
+################################## also set SQUID_NAME env
 name: reef-explorer
-version: 2
+version: 6
 description: |-
   Reef Chain explorer data
 
@@ -13,11 +14,12 @@ deploy:
     env:
       NETWORK:
         mainnet
-      SQUID_NAME:
-        reef-explorer
     cmd: [ "node", "lib/processor" ]
   api:
-    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
+    env:
+      SQUID_NAME:
+        reef-explorer
+    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000", "--sql-statement-timeout", "1000"]
   secrets:
     - NODE_RPC_WS_MAINNET
     - NODE_RPC_WS_TESTNET
@@ -26,42 +28,14 @@ deploy:
     - JWT_SECRET
     - INFURA_IPFS_PROJECT_ID
     - INFURA_IPFS_KEY
-    - API_KEY_REEF-EXPLORER
-    - API_KEY_REEF-EXPLORER-TESTNET
+    - APIKEY_REEF_BRIDGE
 
-#scale:
-#  addons:
-#    postgres:
-#      profile:
-#        large
-#
-#deploy:
-#  addons:
-#    postgres:
-  # the set of secrets that must be set and provided by Aquarium
-#  secrets:
-#    - ACALA_RPC_ENDPOINT
-#    - COINGECKO_API_KEY
-#  processor:
-#    # additional env variables
-#    environment:
-#      SQD_DEBUG=sqd:mapping
-#    env:
-#      # env variables from a file
-#      - .deploy.env
-#    cmd: [ "node", "lib/processor" ]
-#  api:
-#    # custom run command for the GraphQL server
-#    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--sql-statement-timeout", "1000" ]
-
-#scale:
-#  addons:
-#    postgres:
-#      storage: 100G
-#      profile: medium
-#  processor:
-#    profile: medium
-#  api:
-#    profile: large
-#    # load-balance three replicas
-#    replicas: 3
+scale:
+  dedicated: true
+  addons:
+    postgres:
+      storage: 100Gi
+      profile: large
+  processor:
+    profile: large
+#########################################################
