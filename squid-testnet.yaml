@@ -13,10 +13,13 @@ deploy:
     env:
       NETWORK:
         testnet
-      SQUID_NAME:
-        reef-explorer-testnet
+      HEAD_REACHED:
+        false
     cmd: [ "node", "lib/processor" ]
   api:
+    env:
+      SQUID_NAME:
+        reef-explorer-testnet
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - NODE_RPC_WS_MAINNET
