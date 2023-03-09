@@ -26,8 +26,6 @@ deploy:
     - JWT_SECRET
     - INFURA_IPFS_PROJECT_ID
     - INFURA_IPFS_KEY
-    - APIKEY_REEF_EXPLORER
-    - APIKEY_REEF_EXPLORER_TESTNET
 
 scale:
   addons:
