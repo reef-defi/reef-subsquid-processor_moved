@@ -1,7 +1,8 @@
 import { Json } from '@subsquid/graphql-server';
-import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
+import { Arg, Field, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
-import { Contract } from '../../model';
+import { Contract, Extrinsic, Account } from '../../model';
+import { emptyAccount, emptyExtrinsic } from '../../processor';
 
 @ObjectType()
 export class ContractEntity {
@@ -49,5 +50,48 @@ export class ContractResolver {
     `;
     const result = await repository.query(query, [id]);
     return result;
+  }
+
+  @Mutation(() => Boolean) async saveContract(
+    @Arg('id') id: string,
+    @Arg('extrinsicId') extrinsicId: string,
+    @Arg('signerAddress') signerAddress: string,
+    @Arg('bytecode') bytecode: string,
+    @Arg('bytecodeContext') bytecodeContext: string,
+    @Arg('bytecodeArguments') bytecodeArguments: string,
+    @Arg('gasLimit') gasLimit: string,
+    @Arg('storageLimit') storageLimit: string,
+    @Arg('timestamp') timestamp: number,
+  ): Promise<Boolean> {
+    const manager = await this.tx();
+
+    const extrinsic = extrinsicId == '-1' ? emptyExtrinsic 
+      : await manager.findOneBy(Extrinsic, { id: extrinsicId });
+    if (!extrinsic) {
+      console.log(`ERROR inserting contract ${id}: extrinsic not found in DB.`);
+      return false;
+    }
+
+    const signer = signerAddress == '0x' ? emptyAccount 
+      : await manager.findOneBy(Account, { id: signerAddress });
+    if (!signer) {
+      console.log(`ERROR inserting contract ${id}: signer not found in DB.`);
+      return false;
+    }
+
+    const contract = new Contract({
+      id,
+      extrinsic,
+      signer,
+      bytecode,
+      bytecodeContext,
+      bytecodeArguments,
+      gasLimit: BigInt(gasLimit),
+      storageLimit: BigInt(storageLimit),
+      timestamp: new Date(timestamp)
+    });
+
+    await manager.save(contract);
+    return true;
   }
 }
