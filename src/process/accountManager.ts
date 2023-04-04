@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountData } from "../interfaces/interfaces";
 import { Account, Block, TokenHolder, TokenHolderType, Transfer } from "../model";
-import { ctx, headReached, reefVerifiedContract } from "../processor";
+import { ctx, emptyAccount, headReached, reefVerifiedContract } from "../processor";
 import { EvmAccountsEvmAddressesStorage, EVMAccountsStorage, IdentityIdentityOfStorage } from "../types/storage";
 import { bufferToString, extractIdentity, REEF_CONTRACT_ADDRESS, toChecksumAddress } from "../util/util";
 import { TokenHolderManager } from "./tokenHolderManager";
@@ -195,11 +195,6 @@ export class AccountManager {
         await ctx.store.save(tokenHolders);
     
         // Update transfers in DB
-        const zeroAccount = await ctx.store.get(Account, "0x");
-        if (!zeroAccount) {
-            ctx.log.error(`ERROR saving token holder: Account 0x not found`);
-            return;
-        }
         const transfersTo = await ctx.store.find(Transfer, {
             where: { to: { id: nativeAddress } },
             relations: { token: true, block: true, from: true, to: true }
@@ -208,7 +203,7 @@ export class AccountManager {
             if (transfer.token.id === REEF_CONTRACT_ADDRESS && transfer.toEvmAddress !== "") {
                 transfer.toEvmAddress = "";
             } else if (transfer.token.id !== REEF_CONTRACT_ADDRESS && transfer.to.id !== "0x") {
-                transfer.to = zeroAccount;
+                transfer.to = emptyAccount;
             }
         });
         await ctx.store.save(transfersTo);
@@ -221,7 +216,7 @@ export class AccountManager {
             if (transfer.token.id === REEF_CONTRACT_ADDRESS && transfer.toEvmAddress !== "") {
                 transfer.fromEvmAddress = "";
             } else if (transfer.token.id !== REEF_CONTRACT_ADDRESS && transfer.from.id !== "0x") {
-                transfer.from = zeroAccount;
+                transfer.from = emptyAccount;
             }
         });
         await ctx.store.save(transfersFrom);
