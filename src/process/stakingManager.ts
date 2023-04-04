@@ -3,7 +3,7 @@ import { AccountManager } from "./accountManager";
 import { EventRaw, StakingData } from "../interfaces/interfaces";
 import { Account, Event, Staking, StakingType } from "../model";
 import { ctx } from "../processor";
-import { bufferToString, findNativeAddress, hexToNativeAddress } from "../util/util";
+import { bufferToString, hexToNativeAddress } from "../util/util";
 import { StakingPayeeStorage } from "../types/storage";
 import * as ss58 from '@subsquid/ss58';
 export class StakingManager {  
