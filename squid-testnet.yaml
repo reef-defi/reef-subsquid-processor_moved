@@ -31,14 +31,14 @@ deploy:
     - INFURA_IPFS_KEY
     - APIKEY_REEF_BRIDGE
 
-#scale:
-#  addons:
-#    postgres:
-#      profile:
-#        large
-
-
-
+scale:
+  dedicated: true
+  addons:
+    postgres:
+      storage: 100Gi
+      profile: large
+  processor:
+    profile: large
     
 #
 #deploy:
@@ -59,15 +59,3 @@ deploy:
 #  api:
 #    # custom run command for the GraphQL server
 #    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--sql-statement-timeout", "1000" ]
-
-#scale:
-#  addons:
-#    postgres:
-#      storage: 100G
-#      profile: medium
-#  processor:
-#    profile: medium
-#  api:
-#    profile: large
-#    # load-balance three replicas
-#    replicas: 3

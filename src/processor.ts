@@ -110,7 +110,7 @@ processor.run(database, async (ctx_) => {
 
     ctx.log.debug(`Processing block ${block.header.height}`);
 
-    for (const item of block.items) {
+    for (const item of block.items as any) {
       if (item.kind === "event" && item.event.phase === "ApplyExtrinsic") {
         const eventRaw = item.event as EventRaw;
 

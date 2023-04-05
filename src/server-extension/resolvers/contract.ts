@@ -2,7 +2,6 @@ import { Json } from '@subsquid/graphql-server';
 import { Arg, Field, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
 import { Contract, Extrinsic, Account } from '../../model';
-import { emptyAccount, emptyExtrinsic } from '../../processor';
 
 @ObjectType()
 export class ContractEntity {
@@ -65,15 +64,13 @@ export class ContractResolver {
   ): Promise<Boolean> {
     const manager = await this.tx();
 
-    const extrinsic = extrinsicId == '-1' ? emptyExtrinsic 
-      : await manager.findOneBy(Extrinsic, { id: extrinsicId });
+    const extrinsic = await manager.findOneBy(Extrinsic, { id: extrinsicId });
     if (!extrinsic) {
       console.log(`ERROR inserting contract ${id}: extrinsic not found in DB.`);
       return false;
     }
 
-    const signer = signerAddress == '0x' ? emptyAccount 
-      : await manager.findOneBy(Account, { id: signerAddress });
+    const signer = await manager.findOneBy(Account, { id: signerAddress });
     if (!signer) {
       console.log(`ERROR inserting contract ${id}: signer not found in DB.`);
       return false;
