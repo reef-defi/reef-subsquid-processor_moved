@@ -108,10 +108,11 @@ type EvmEvent @entity {
 
 # ================ Token transfers ========================
 
-type Transfer @entity @index(fields: ["id", "extrinsic"], unique: true) {
+type Transfer @entity @index(fields: ["id", "extrinsic"], unique: true) @index (fields: ["id", "event"], unique: true) {
   id: ID!
   block: Block!
   extrinsic: Extrinsic!
+  event: Event!
   to: Account!
   from: Account!
   token: VerifiedContract!
@@ -191,76 +192,6 @@ type Staking @entity {
   amount: BigInt! 
   timestamp: DateTime!
 }
-
-# ===================== Pools =============================
-
-# type Pool @entity {
-#   id: ID!
-#   address: String! @index
-#   evmEvent: EvmEvent @index
-#   token1: Contract! @index
-#   token2: Contract! @index
-#   poolDecimal: Int!
-#   decimal1: Int!
-#   decimal2: Int!
-# }
-
-# type PoolEvent @entity {
-#   id: ID!
-#   pool: Pool! @index
-#   evmEvent: EvmEvent! @index
-#   toAddress: String @index
-#   senderAddress: String @index
-#   type: PoolType! @index
-#   amount1: BigInt @index
-#   amount2: BigInt @index
-#   amountIn1: BigInt @index
-#   amountIn2: BigInt @index
-#   reserved1: BigInt @index
-#   reserved2: BigInt @index
-#   supply: BigInt @index
-#   totalSupply: BigInt @index
-#   timestamp: DateTime! @index
-# }
-
-# type Candlestick @entity @index(fields: ["block", "pool", "token"], unique: true) {
-#   id: ID!
-#   block: Block!
-#   pool: Pool!
-#   token: VerifiedContract!
-#   open: BigInt!
-#   high: BigInt!
-#   low: BigInt!
-#   close: BigInt!
-#   timestamp: DateTime! @index
-# }
-
-# type ReservedRaw @entity @index(fields: ["block", "pool"], unique: true) {
-#   id: ID!
-#   block: Block!
-#   pool: Pool!
-#   evmEvent: EvmEvent
-#   reserved1: BigInt!
-#   reserved2: BigInt!
-#   timestamp: DateTime! @index
-# }
-
-# type VolumeRaw @entity @index(fields: ["block", "pool"], unique: true) {
-#   id: ID!
-#   block: Block!
-#   pool: Pool!
-#   volume1: BigInt!
-#   volume2: BigInt!
-#   timestamp: DateTime! @index
-# }
-
-# type TokenPrice @entity @index(fields: ["block", "token"], unique: true) {
-#   id: ID!
-#   block: Block!
-#   token: VerifiedContract!
-#   price: BigInt!
-#   timestamp: DateTime! @index
-# }
 
 # ===================== Enums =============================
 

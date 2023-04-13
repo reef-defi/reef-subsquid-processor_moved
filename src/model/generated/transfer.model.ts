@@ -2,11 +2,13 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Block} from "./block.model"
 import {Extrinsic} from "./extrinsic.model"
+import {Event} from "./event.model"
 import {Account} from "./account.model"
 import {VerifiedContract} from "./verifiedContract.model"
 import {TransferType} from "./_transferType"
 
 @Index_(["id", "extrinsic"], {unique: true})
+@Index_(["id", "event"], {unique: true})
 @Entity_()
 export class Transfer {
     constructor(props?: Partial<Transfer>) {
@@ -23,6 +25,10 @@ export class Transfer {
     @Index_()
     @ManyToOne_(() => Extrinsic, {nullable: true})
     extrinsic!: Extrinsic
+
+    @Index_()
+    @ManyToOne_(() => Event, {nullable: true})
+    event!: Event
 
     @Index_()
     @ManyToOne_(() => Account, {nullable: true})

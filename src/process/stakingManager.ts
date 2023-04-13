@@ -17,7 +17,7 @@ export class StakingManager {
     
         const addressBytes = ss58.decode(signerAddress).bytes;
         const rewardDestination = await this.getStakingPayee(blockHeader, addressBytes);
-        // If account has speficied different reward destination we switch the staking signer to that one
+        // If account has specified different reward destination we switch the staking signer to that one
         if (rewardDestination?.__kind === 'Account' && rewardDestination.value) {
             signerAddress = hexToNativeAddress(bufferToString(rewardDestination.value as Buffer));
             await accountManager.process(signerAddress, blockHeader);

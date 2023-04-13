@@ -166,7 +166,7 @@ processor.run(database, async (ctx_) => {
   const accounts = await accountManager.save(blocks);
   await contractManager.save(accounts, extrinsics);
   await evmEventManager.save(blocks, events);
-  await transferManager.save(blocks, extrinsics, accounts);
+  await transferManager.save(blocks, extrinsics, accounts, events);
   await tokenHolderManager.save(accounts);
   await stakingManager.save(accounts, events);
 });

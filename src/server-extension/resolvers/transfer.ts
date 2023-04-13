@@ -1,7 +1,7 @@
 import { BigInteger } from '@subsquid/graphql-server';
 import { Arg, Field, InputType, Mutation, Resolver } from 'type-graphql'
 import { EntityManager, In } from 'typeorm'
-import { Account, Block, Extrinsic, Transfer, TransferType, VerifiedContract } from '../../model';
+import { Account, Block, Event, Extrinsic, Transfer, TransferType, VerifiedContract } from '../../model';
 
 @InputType()
 export class TransferInput {
@@ -75,6 +75,10 @@ export class TransferResolver {
       .filter((id, index, self) => id && self.indexOf(id) === index);
     const extrinsics: Extrinsic[] = await manager.findBy(Extrinsic, { id: In(extrinsicIds) });
 
+    const eventIds = transfers.map((transfer) => transfer.id)
+      .filter((id, index, self) => id && self.indexOf(id) === index);
+    const events: Event[] = await manager.findBy(Event, { id: In(eventIds) });
+
     const toIds = transfers.map((transfer) => transfer.toId)
       .filter((id, index, self) => id && self.indexOf(id) === index);
     const tos: Account[] = await manager.findBy(Account, { id: In(toIds) });
@@ -98,6 +102,8 @@ export class TransferResolver {
         extrinsic = extrinsics.find((e) => e.id === transfer.extrinsicId);
       }
 
+      let event: Event | undefined = events.find((e) => e.id === transfer.id);
+
       let to: Account | undefined = undefined;
       if (transfer.toId) {
         to = tos.find((a) => a.id === transfer.toId);
@@ -117,6 +123,7 @@ export class TransferResolver {
         id: transfer.id,
         block,
         extrinsic,
+        event,
         to,
         from,
         token,

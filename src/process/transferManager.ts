@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { AccountManager } from "./accountManager";
 import { EventRaw, TransferData } from "../interfaces/interfaces";
-import { Account, Block, ContractType, Extrinsic, Transfer, VerifiedContract } from "../model";
+import { Account, Block, ContractType, Event, Extrinsic, Transfer, VerifiedContract } from "../model";
 import * as erc20 from "../abi/ERC20";
 import * as erc721 from "../abi/ERC721";
 import * as erc1155 from "../abi/ERC1155";
@@ -58,7 +58,8 @@ export class TransferManager {
     async save(
         blocks: Map<string, Block>, 
         extrinsics: Map<string, Extrinsic>,
-        accounts: Map<string, Account>
+        accounts: Map<string, Account>,
+        events: Map<string, Event>
     ) {
         const transfers: Transfer[] = [];
 
@@ -74,7 +75,13 @@ export class TransferManager {
             if (!extrinsic) {
                 ctx.log.error(`ERROR saving transfer: Extrinsic ${transferData.extrinsicId} not found`);
                 continue;
-            } 
+            }
+
+            const event = events.get(transferData.id);
+            if (!event) {
+                ctx.log.error(`ERROR saving transfer: Event ${transferData.id} not found`);
+                continue;
+            }
             
             // Search to account in cached accounts
             let to = accounts.get(transferData.toAddress);
@@ -103,6 +110,7 @@ export class TransferManager {
                     ...transferData,
                     block: block,
                     extrinsic: extrinsic,
+                    event: event,
                     to: to,
                     from: from
                 })
