@@ -1,5 +1,5 @@
-module.exports = class Data1700000000000 {
-    name = 'Data1700000000000'
+module.exports = class Data1674806867300 {
+    name = 'Data1674806867300'
 
     // NOTE: Script inserted manually. Creates functions and triggers, and inserts initial data.
     async up(db) {
