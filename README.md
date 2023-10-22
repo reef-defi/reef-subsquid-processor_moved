@@ -1,5 +1,7 @@
 # Reef Explorer squid
 
+# Moved to https://github.com/reef-chain/subsquid-processor
+
 [Substrate processor](https://docs.subsquid.io/develop-a-squid/substrate-processor/), including support for EVM events. Built upon [squid Frontier EVM template](https://github.com/subsquid/squid-frontier-evm-template) and adapted to be used with Reef network.
 
 ## Quickstart
